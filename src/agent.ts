@@ -40,6 +40,10 @@ async function main() {
   const model = new ChatOpenAI({
     modelName: "gpt-4o", // or your preferred model
     temperature: 0,
+    openAIApiKey: process.env.FREEMODEL_OPENAI_API_KEY,
+    configuration: {
+      baseURL: "https://api.freemodel.dev/v1",
+    },
   });
 
   // 2. Initialize the KeeperGate Toolkit
