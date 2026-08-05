@@ -37,7 +37,7 @@ async function withRetry<T>(
 
 async function main() {
   // 1. Initialize the LLM
-  const llm = new ChatOpenAI({
+  const model = new ChatOpenAI({
     modelName: "gpt-4o", // or your preferred model
     temperature: 0,
   });
@@ -58,9 +58,9 @@ async function main() {
 
   // 3. Create the Agent using LangGraph
   const agent = createAgent({
-    llm,
+    model,
     tools: tools as any,
-    messageModifier:
+    systemPrompt:
       "You are a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
   });
 
