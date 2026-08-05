@@ -1,0 +1,34 @@
+{
+  "dependencies": {
+    "@keepergate/langchain": "^0.0.1",
+    "@langchain/openai": "^1.5.5",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^17.4.2",
+    "langchain": "^1.5.4"
+  },
+  "name": "kp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx src/agent.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kaycee276/kp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Kaycee276/kp/issues"
+  },
+  "homepage": "https://github.com/Kaycee276/kp#readme",
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.8",
+    "typescript": "^7.0.2"
+  }
+}
