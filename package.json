@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@keepergate/langchain": "^0.0.1",
+    "@langchain/google-genai": "^2.2.0",
     "@langchain/openai": "^1.5.5",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^17.4.2",
