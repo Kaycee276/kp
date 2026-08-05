@@ -1,14 +1,39 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { KeeperHubToolkit } from "@keepergate/langchain";
-import { AgentExecutor, createOpenAIFunctionsAgent } from "langchain/agents";
-import {
-  ChatPromptTemplate,
-  MessagesPlaceholder,
-} from "@langchain/core/prompts";
+import { KeeperGateToolkit } from "@keepergate/langchain";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import * as dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
+
+/**
+ * A simple retry wrapper to handle transient errors (e.g., network issues, gas spikes).
+ * This demonstrates robust failure handling for onchain execution.
+ */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 2000,
+): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      console.warn(
+        `[Attempt ${i + 1}/${maxRetries}] Operation failed: ${error.message}`,
+      );
+      if (i < maxRetries - 1) {
+        console.log(`Retrying in ${delayMs / 1000} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw new Error(
+    `Operation failed after ${maxRetries} attempts. Last error: ${lastError.message}`,
+  );
+}
 
 async function main() {
   // 1. Initialize the LLM
@@ -17,48 +42,50 @@ async function main() {
     temperature: 0,
   });
 
-  // 2. Initialize the KeeperHub Toolkit
+  // 2. Initialize the KeeperGate Toolkit
   // This automatically loads the tools available to your KeeperHub organization
-  const toolkit = new KeeperHubToolkit({
-    apiKey: process.env.KEEPERHUB_API_KEY,
+  const apiKey = process.env.KEEPERHUB_API_KEY;
+  if (!apiKey) {
+    throw new Error("KEEPERHUB_API_KEY environment variable is missing.");
+  }
+
+  const toolkit = new KeeperGateToolkit({
+    apiKey: apiKey,
   });
   const tools = await toolkit.getTools();
 
   console.log(`Loaded ${tools.length} KeeperHub tools.`);
 
-  // 3. Create the Agent Prompt
-  const prompt = ChatPromptTemplate.fromMessages([
-    [
-      "system",
-      "You are a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
-    ],
-    ["human", "{input}"],
-    new MessagesPlaceholder("agent_scratchpad"),
-  ]);
-
-  // 4. Create the Agent
-  const agent = await createOpenAIFunctionsAgent({
+  // 3. Create the Agent using LangGraph
+  const agent = createReactAgent({
     llm,
-    tools,
-    prompt,
+    tools: tools as any,
+    messageModifier:
+      "You are a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
   });
 
-  const agentExecutor = new AgentExecutor({
-    agent,
-    tools,
-    verbose: true,
-  });
-
-  // 5. Run the Agent
+  // 4. Run the Agent with Retry Logic
   const input =
-    "Check my KeeperHub workflows and tell me what I have available.";
-  console.log(`\nExecuting prompt: "${input}"\n`);
+    "Check my KeeperHub workflows. If I have a workflow for sending ETH, prepare a transaction to send 0.001 ETH to vitalik.eth, but DO NOT execute it yet. Just show me the prepared transaction data.";
 
-  const result = await agentExecutor.invoke({
-    input,
-  });
+  console.log(`\n🤖 Executing prompt: "${input}"\n`);
 
-  console.log("\nResult:", result.output);
+  try {
+    const result = await withRetry(async () => {
+      return await agent.invoke({
+        messages: [["human", input]],
+      });
+    });
+
+    const lastMessage = result.messages[result.messages.length - 1];
+    if (lastMessage) {
+      console.log("\n✅ Result:", lastMessage.content);
+    } else {
+      console.log("\n✅ Result: No response.");
+    }
+  } catch (error: any) {
+    console.error("\n❌ Agent execution failed completely:", error);
+  }
 }
 
 main().catch((error) => {

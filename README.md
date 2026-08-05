@@ -42,7 +42,7 @@ This template uses the official `@keepergate/langchain` adapter, which seamlessl
 Check out `src/agent.ts`. The magic happens in these three lines:
 
 ```typescript
-const toolkit = new KeeperHubToolkit({
+const toolkit = new KeeperGateToolkit({
   apiKey: process.env.KEEPERHUB_API_KEY,
 });
 const tools = await toolkit.getTools();
