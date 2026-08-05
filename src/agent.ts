@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { KeeperGateToolkit } from "@keepergate/langchain";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import * as dotenv from "dotenv";
 
 // Load environment variables
@@ -57,7 +57,7 @@ async function main() {
   console.log(`Loaded ${tools.length} KeeperHub tools.`);
 
   // 3. Create the Agent using LangGraph
-  const agent = createReactAgent({
+  const agent = createAgent({
     llm,
     tools: tools as any,
     messageModifier:
