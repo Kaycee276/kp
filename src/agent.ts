@@ -1,6 +1,9 @@
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { KeeperGateToolkit } from "@keepergate/langchain";
 import { createAgent } from "langchain";
+import { DynamicStructuredTool } from "@langchain/core/tools";
+import { zodToJsonSchema } from "zod-to-json-schema";
+import { z } from "zod";
 import * as dotenv from "dotenv";
 
 // Load environment variables
@@ -37,13 +40,10 @@ async function withRetry<T>(
 
 async function main() {
   // 1. Initialize the LLM
-  const model = new ChatOpenAI({
-    modelName: "gpt-4o", // or your preferred model
+  const model = new ChatGoogleGenerativeAI({
+    model: "gemini-3.5-flash", // or your preferred model
     temperature: 0,
-    openAIApiKey: process.env.FREEMODEL_OPENAI_API_KEY,
-    configuration: {
-      baseURL: "https://api.freemodel.dev/v1",
-    },
+    apiKey: process.env.GEMINI_API_KEY || "",
   });
 
   // 2. Initialize the KeeperGate Toolkit
@@ -60,10 +60,34 @@ async function main() {
 
   console.log(`Loaded ${tools.length} KeeperHub tools.`);
 
+  // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
+  const geminiCompatibleTools = tools.map((tool: any) => {
+    const schemaJson = JSON.stringify(zodToJsonSchema(tool.schema));
+    return new DynamicStructuredTool({
+      name: tool.name,
+      description: `${tool.description}\n\nIMPORTANT: You must pass a single JSON string argument named 'args' that matches this schema: ${schemaJson}`,
+      schema: z.object({
+        args: z
+          .string()
+          .describe(
+            "A JSON string containing all the required arguments for this tool.",
+          ),
+      }),
+      func: async (args) => {
+        try {
+          const parsedArgs = JSON.parse(args.args);
+          return await tool.invoke(parsedArgs);
+        } catch (e: any) {
+          return `Error parsing or executing tool: ${e.message}`;
+        }
+      },
+    });
+  });
+
   // 3. Create the Agent using LangGraph
   const agent = createAgent({
     model,
-    tools: tools as any,
+    tools: geminiCompatibleTools as any,
     systemPrompt:
       "You are a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
   });
