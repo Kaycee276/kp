@@ -142,7 +142,7 @@ async function main() {
 
   // 2. Initialize the KeeperGate Toolkit
   const toolkit = new KeeperGateToolkit({
-    apiKey: keeperhubKey,
+    apiKey: keeperhubKey as string,
   });
   const tools = await toolkit.getTools();
 
