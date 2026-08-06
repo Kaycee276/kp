@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { KeeperGateToolkit } from "@keepergate/langchain";
 import { createAgent } from "langchain";

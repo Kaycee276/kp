@@ -10,10 +10,13 @@
   "name": "kp",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "bin": {
+    "kp": "./dist/agent.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsx src/agent.ts"
+    "build": "tsc",
+    "start": "tsx src/agent.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
