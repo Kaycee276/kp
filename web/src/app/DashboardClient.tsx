@@ -35,56 +35,56 @@ export default function DashboardClient({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 shadow-xl">
+    <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-xl">
       <div className="flex items-center gap-3 mb-6">
-        <Key className="w-6 h-6 text-blue-400" />
-        <h2 className="text-xl font-semibold">API Keys</h2>
+        <Key className="w-6 h-6 text-emerald-600" />
+        <h2 className="text-xl font-bold text-slate-800">API Keys</h2>
       </div>
 
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-zinc-400 mb-2">
+          <label className="block text-sm font-bold text-slate-700 mb-2">
             Gemini API Key
           </label>
           <input
             type="password"
             value={geminiKey}
             onChange={(e) => setGeminiKey(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm"
             placeholder="AIzaSy..."
           />
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-slate-500">
             Used to power the agent&apos;s reasoning. Get it free from Google AI
             Studio.
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-zinc-400 mb-2">
+          <label className="block text-sm font-bold text-slate-700 mb-2">
             KeeperHub API Key
           </label>
           <input
             type="password"
             value={keeperhubKey}
             onChange={(e) => setKeeperhubKey(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
+            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm"
             placeholder="kh_..."
           />
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 text-xs text-slate-500">
             Used to execute onchain transactions. Get it from your KeeperHub
             dashboard.
           </p>
         </div>
 
-        <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
-          <p className="text-sm text-zinc-500">
+        <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+          <p className="text-sm text-slate-500">
             These keys are stored securely and only accessible by your CLI via
             the device flow.
           </p>
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 bg-white text-black hover:bg-zinc-200 px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-sm"
           >
             {saved ? (
               <>

@@ -29,10 +29,10 @@ export default function LinkClient({ deviceCode }: { deviceCode: string }) {
 
   if (status === "success") {
     return (
-      <div className="flex flex-col items-center text-green-400">
+      <div className="flex flex-col items-center text-emerald-600">
         <CheckCircle2 className="w-12 h-12 mb-4" />
         <p className="font-medium">Successfully authorized!</p>
-        <p className="text-sm text-zinc-400 mt-2">
+        <p className="text-sm text-slate-500 mt-2">
           You can close this window and return to your terminal.
         </p>
       </div>
@@ -41,12 +41,12 @@ export default function LinkClient({ deviceCode }: { deviceCode: string }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="bg-zinc-950 px-6 py-3 rounded-lg font-mono text-xl tracking-widest border border-zinc-800 mb-8">
+      <div className="bg-slate-50 px-6 py-3 rounded-lg font-mono text-xl tracking-widest border border-slate-200 mb-8 text-slate-800 shadow-inner">
         {deviceCode}
       </div>
 
       {status === "error" && (
-        <p className="text-red-400 text-sm mb-4">
+        <p className="text-red-500 text-sm mb-4">
           Failed to authorize. Please try again.
         </p>
       )}
@@ -54,7 +54,7 @@ export default function LinkClient({ deviceCode }: { deviceCode: string }) {
       <button
         onClick={handleAuthorize}
         disabled={status === "loading"}
-        className="w-full flex items-center justify-center gap-2 bg-white text-black hover:bg-zinc-200 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-sm"
       >
         {status === "loading" ? (
           <>
