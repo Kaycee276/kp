@@ -9,69 +9,78 @@ export default async function Home() {
 
   if (!session?.user) {
     return (
-      <div className="min-h-screen bg-kp-bg text-white">
-        <div className="max-w-5xl mx-auto py-16 px-8">
-          <div className="text-center mb-20">
-            <h1 className="text-5xl font-extrabold mb-6 text-kp-accent">
-              KP Agent
+      <div className="min-h-screen bg-kp-bg text-white overflow-hidden relative">
+        {/* Background Glow */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-kp-accent/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto py-24 px-8 relative z-10">
+          <div className="text-center mb-24">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-kp-card border border-kp-border text-sm font-medium text-gray-300 mb-8">
+              <span className="w-2 h-2 rounded-full bg-kp-accent animate-pulse" />
+              KeeperHub x Gemini Hackathon
+            </div>
+            <h1 className="text-6xl md:text-7xl font-extrabold mb-8 tracking-tight">
+              Build Onchain Agents <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-kp-accent to-emerald-300">
+                in Minutes.
+              </span>
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-12">
               The zero-to-one starter template for building AI agents that
               execute onchain transactions using KeeperHub and Gemini.
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-            <div className="bg-kp-card rounded-xl border border-kp-border p-8 shadow-xl">
-              <h2 className="text-2xl font-bold mb-4">Get Started</h2>
-              <p className="text-gray-400 mb-8 leading-relaxed">
-                Sign in to manage your API keys and link your CLI. Your keys are
-                stored securely and only accessible via the device authorization
-                flow.
-              </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/api/auth/signin"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-kp-accent hover:bg-kp-accent-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kp-accent transition-colors shadow-sm"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-white bg-kp-accent hover:bg-kp-accent-hover transition-all shadow-[0_0_40px_-10px_rgba(10,185,85,0.5)] hover:shadow-[0_0_60px_-15px_rgba(10,185,85,0.7)] hover:-translate-y-1"
               >
-                Sign in with GitHub
+                Get Started
               </Link>
+              <a
+                href="https://github.com/Kaycee276/kp"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-white bg-kp-card border border-kp-border hover:bg-gray-800 transition-all hover:-translate-y-1"
+              >
+                View on GitHub
+              </a>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-kp-card/50 backdrop-blur-xl border border-kp-border rounded-2xl p-8 hover:border-kp-accent/50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-kp-accent/10 flex items-center justify-center mb-6">
+                <span className="text-2xl font-bold text-kp-accent">1</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Install the CLI</h3>
+              <p className="text-gray-400 mb-6">
+                Clone the repository and link the CLI globally to your system.
+              </p>
+              <div className="bg-[#0b1120] rounded-xl p-4 font-mono text-sm text-gray-300 border border-kp-border/50">
+                git clone https://github.com/Kaycee276/kp.git
+                <br />
+                cd kp
+                <br />
+                npm install
+                <br />
+                npm run build
+                <br />
+                npm link
+              </div>
             </div>
 
-            <div className="space-y-10">
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-white">
-                  <span className="bg-kp-accent/20 text-kp-accent w-8 h-8 rounded-full flex items-center justify-center text-sm">
-                    1
-                  </span>
-                  Install the CLI
-                </h3>
-                <div className="bg-kp-bg border border-kp-border rounded-lg p-5 font-mono text-sm text-gray-300 leading-loose shadow-inner">
-                  git clone https://github.com/Kaycee276/kp.git
-                  <br />
-                  cd kp
-                  <br />
-                  npm install
-                  <br />
-                  npm run build
-                  <br />
-                  npm link
-                </div>
+            <div className="bg-kp-card/50 backdrop-blur-xl border border-kp-border rounded-2xl p-8 hover:border-kp-accent/50 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-kp-accent/10 flex items-center justify-center mb-6">
+                <span className="text-2xl font-bold text-kp-accent">2</span>
               </div>
-
-              <div>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-3 text-white">
-                  <span className="bg-kp-accent/20 text-kp-accent w-8 h-8 rounded-full flex items-center justify-center text-sm">
-                    2
-                  </span>
-                  Run the Agent
-                </h3>
-                <div className="bg-kp-bg border border-kp-border rounded-lg p-5 font-mono text-sm text-gray-300 shadow-inner">
-                  kp
-                </div>
-                <p className="text-sm text-gray-500 mt-3">
-                  The CLI will automatically generate a device code and direct
-                  you here to authorize it.
-                </p>
+              <h3 className="text-2xl font-bold mb-4">Run the Agent</h3>
+              <p className="text-gray-400 mb-6">
+                Start the agent. It will automatically direct you here to
+                securely authorize your device.
+              </p>
+              <div className="bg-[#0b1120] rounded-xl p-4 font-mono text-sm text-gray-300 border border-kp-border/50">
+                kp
               </div>
             </div>
           </div>

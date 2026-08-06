@@ -6,6 +6,9 @@
   --color-kp-accent-hover: #09a04a;
   --color-kp-card: #1f2937;
   --color-kp-border: #374151;
+
+  --font-sans: var(--font-outfit);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 :root {
