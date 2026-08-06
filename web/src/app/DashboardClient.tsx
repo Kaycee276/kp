@@ -35,7 +35,7 @@ export default function DashboardClient({
   };
 
   return (
-    <div className="bg-kp-card border border-kp-border rounded-xl p-8 shadow-xl">
+    <div className="bg-kp-card border border-kp-border p-8 shadow-xl">
       <div className="flex items-center gap-3 mb-6">
         <Key className="w-6 h-6 text-kp-accent" />
         <h2 className="text-xl font-bold text-white">API Keys</h2>
@@ -50,7 +50,7 @@ export default function DashboardClient({
             type="password"
             value={geminiKey}
             onChange={(e) => setGeminiKey(e.target.value)}
-            className="w-full bg-kp-bg border border-kp-border rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
+            className="w-full bg-kp-bg border border-kp-border px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
             placeholder="AIzaSy..."
           />
           <p className="mt-2 text-xs text-gray-500">
@@ -67,7 +67,7 @@ export default function DashboardClient({
             type="password"
             value={keeperhubKey}
             onChange={(e) => setKeeperhubKey(e.target.value)}
-            className="w-full bg-kp-bg border border-kp-border rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
+            className="w-full bg-kp-bg border border-kp-border px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
             placeholder="kh_..."
           />
           <p className="mt-2 text-xs text-gray-500">
@@ -84,7 +84,7 @@ export default function DashboardClient({
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 bg-kp-accent text-white hover:bg-kp-accent-hover px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 shadow-sm"
+            className="flex items-center gap-2 bg-kp-accent text-white hover:bg-kp-accent-hover px-6 py-2.5 font-medium transition-colors disabled:opacity-50 shadow-sm"
           >
             {saved ? (
               <>
