@@ -80,21 +80,20 @@ async function main() {
   let keeperhubKey = process.env.KEEPERHUB_API_KEY || config.KEEPERHUB_API_KEY;
 
   if (!geminiKey || !keeperhubKey) {
-    console.log("\n🔐 Authentication Required");
+    console.log("\n Authentication Required");
     console.log("Initializing device authorization flow...");
 
+    const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
     try {
-      const initRes = await fetch(
-        "http://localhost:3000/api/auth/device/init",
-        {
-          method: "POST",
-        },
-      );
+      const initRes = await fetch(`${FRONTEND_URL}/api/auth/device/init`, {
+        method: "POST",
+      });
       const { deviceCode } = await initRes.json();
 
       console.log(`\n==================================================`);
       console.log(`Please visit the following URL to authorize this CLI:`);
-      console.log(`👉 http://localhost:3000/link?code=${deviceCode}`);
+      console.log(` ${FRONTEND_URL}/link?code=${deviceCode}`);
       console.log(`==================================================\n`);
       console.log("Waiting for authorization...");
 
@@ -103,14 +102,11 @@ async function main() {
       while (!authorized) {
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        const pollRes = await fetch(
-          "http://localhost:3000/api/auth/device/poll",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deviceCode }),
-          },
-        );
+        const pollRes = await fetch(`${FRONTEND_URL}/api/auth/device/poll`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceCode }),
+        });
 
         const data = await pollRes.json();
 
@@ -121,9 +117,9 @@ async function main() {
           config.KEEPERHUB_API_KEY = keeperhubKey;
           saveConfig(config);
           authorized = true;
-          console.log("✅ Successfully authorized!\n");
+          console.log(" Successfully authorized!\n");
         } else if (data.status === "expired") {
-          console.log("❌ Device code expired. Please run the command again.");
+          console.log(" Device code expired. Please run the command again.");
           process.exit(1);
         }
       }
