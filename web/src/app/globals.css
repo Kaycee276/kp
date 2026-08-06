@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-kp-bg: #111826;
+  --color-kp-bg: #121212;
   --color-kp-accent: #0ab955;
   --color-kp-accent-hover: #09a04a;
-  --color-kp-card: #1f2937;
+  --color-kp-card: #181818;
   --color-kp-border: #374151;
+  --color-kp-copy: #0ab955;
 
   --font-sans: var(--font-lato);
   --font-mono: var(--font-jetbrains-mono);

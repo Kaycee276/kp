@@ -83,20 +83,20 @@ export default async function Home() {
                 Clone the repository and link the CLI globally to your system.
               </p>
               <div className="space-y-4">
-                <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+                <div className="bg-kp-copy/70 p-4 font-mono text-sm text-gray-300 relative group">
                   <CopyButton
                     text={`curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash`}
                   />
-                  <span className="text-gray-500"># Mac/Linux</span>
+                  <span className="text-black"># Mac/Linux</span>
                   <br />
                   curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash
                 </div>
 
-                <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+                <div className="bg-kp-copy/70 p-4 font-mono text-sm text-gray-300 relative group">
                   <CopyButton
                     text={`iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex`}
                   />
-                  <span className="text-gray-500"># Windows (PowerShell)</span>
+                  <span className="text-black"># Windows (PowerShell)</span>
                   <br />
                   iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex
                 </div>
@@ -112,7 +112,7 @@ export default async function Home() {
                 Start the agent. It will automatically direct you here to
                 securely authorize your device.
               </p>
-              <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+              <div className="bg-kp-copy/70 p-4 font-mono text-sm text-gray-300 relative group">
                 <CopyButton text="kp" />
                 kp
               </div>
@@ -126,7 +126,7 @@ export default async function Home() {
               <p className="text-gray-400 mb-6">
                 Remove the CLI and clean up your local configuration.
               </p>
-              <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+              <div className="bg-kp-copy/70 p-4 font-mono text-sm text-gray-300 relative group">
                 <CopyButton text={`npm unlink\nrm ~/.kp-config.json`} />
                 npm unlink
                 <br />
