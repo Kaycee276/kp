@@ -7,7 +7,7 @@
   --color-kp-card: #1f2937;
   --color-kp-border: #374151;
 
-  --font-sans: var(--font-outfit);
+  --font-sans: var(--font-lato);
   --font-mono: var(--font-jetbrains-mono);
 }
 
