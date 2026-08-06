@@ -9,7 +9,7 @@ import CopyButton from "./CopyButton";
 async function getGithubStars() {
   try {
     const res = await fetch("https://api.github.com/repos/Kaycee276/kp", {
-      next: { revalidate: 3600 },
+      next: { revalidate: 60 },
     });
     const data = await res.json();
     return data.stargazers_count || 0;
@@ -72,7 +72,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-kp-card/50 backdrop-blur-xl p-8 hover:bg-kp-card transition-colors">
               <div className="w-12 h-12 bg-kp-accent/10 flex items-center justify-center mb-6">
                 <span className="text-2xl font-bold text-kp-accent">1</span>
