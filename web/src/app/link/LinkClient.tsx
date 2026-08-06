@@ -63,7 +63,7 @@ export default function LinkClient({
           </p>
         </div>
         <Link
-          href="/"
+          href={`/?callbackUrl=/link?code=${deviceCode}`}
           className="w-full flex items-center justify-center gap-2 bg-kp-accent text-white hover:bg-kp-accent-hover px-6 py-3 font-medium transition-colors shadow-sm"
         >
           Go to Dashboard to set keys

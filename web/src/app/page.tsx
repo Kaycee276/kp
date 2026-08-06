@@ -5,6 +5,7 @@ import LoginButton from "./LoginButton";
 import LogoutButton from "./LogoutButton";
 import DashboardClient from "./DashboardClient";
 import CopyButton from "./CopyButton";
+import { Suspense } from "react";
 
 async function getGithubStars() {
   try {
@@ -153,10 +154,12 @@ export default async function Home() {
 
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <DashboardClient
-              initialGeminiKey={user?.geminiKey || ""}
-              initialKeeperhubKey={user?.keeperhubKey || ""}
-            />
+            <Suspense fallback={<div>Loading dashboard...</div>}>
+              <DashboardClient
+                initialGeminiKey={user?.geminiKey || ""}
+                initialKeeperhubKey={user?.keeperhubKey || ""}
+              />
+            </Suspense>
           </div>
 
           <div className="bg-kp-card p-6 h-fit shadow-lg">

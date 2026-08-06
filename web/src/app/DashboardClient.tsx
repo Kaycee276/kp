@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Key, Save, CheckCircle2 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardClient({
   initialGeminiKey,
@@ -15,6 +16,10 @@ export default function DashboardClient({
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const callbackUrl = searchParams.get("callbackUrl");
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -25,7 +30,11 @@ export default function DashboardClient({
       });
       if (res.ok) {
         setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+        if (callbackUrl) {
+          router.push(callbackUrl);
+        } else {
+          setTimeout(() => setSaved(false), 3000);
+        }
       }
     } catch (e) {
       console.error(e);
