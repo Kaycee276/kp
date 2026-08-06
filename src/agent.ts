@@ -83,7 +83,7 @@ async function main() {
     console.log("\n Authentication Required");
     console.log("Initializing device authorization flow...");
 
-    const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+    const FRONTEND_URL = "https://kp-three-mu.vercel.app";
 
     try {
       const initRes = await fetch(`${FRONTEND_URL}/api/auth/device/init`, {
