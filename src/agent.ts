@@ -79,29 +79,65 @@ async function main() {
   let geminiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
   let keeperhubKey = process.env.KEEPERHUB_API_KEY || config.KEEPERHUB_API_KEY;
 
-  if (!geminiKey) {
-    console.log(
-      "Gemini API Key is missing. Get one for free at https://aistudio.google.com/app/apikey",
-    );
-    geminiKey = await askQuestion("Enter your Gemini API Key: ");
-    config.GEMINI_API_KEY = geminiKey;
-    saveConfig(config);
-  }
+  if (!geminiKey || !keeperhubKey) {
+    console.log("\n🔐 Authentication Required");
+    console.log("Initializing device authorization flow...");
 
-  if (!keeperhubKey) {
-    console.log(
-      "KeeperHub API Key is missing. Get one at https://app.keeperhub.com",
-    );
-    keeperhubKey = await askQuestion("Enter your KeeperHub API Key: ");
-    config.KEEPERHUB_API_KEY = keeperhubKey;
-    saveConfig(config);
+    try {
+      const initRes = await fetch(
+        "http://localhost:3000/api/auth/device/init",
+        {
+          method: "POST",
+        },
+      );
+      const { deviceCode } = await initRes.json();
+
+      console.log(`\n==================================================`);
+      console.log(`Please visit the following URL to authorize this CLI:`);
+      console.log(`👉 http://localhost:3000/link?code=${deviceCode}`);
+      console.log(`==================================================\n`);
+      console.log("Waiting for authorization...");
+
+      // Poll for authorization
+      let authorized = false;
+      while (!authorized) {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        const pollRes = await fetch(
+          "http://localhost:3000/api/auth/device/poll",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceCode }),
+          },
+        );
+
+        const data = await pollRes.json();
+
+        if (data.status === "authorized") {
+          geminiKey = data.geminiKey;
+          keeperhubKey = data.keeperhubKey;
+          config.GEMINI_API_KEY = geminiKey;
+          config.KEEPERHUB_API_KEY = keeperhubKey;
+          saveConfig(config);
+          authorized = true;
+          console.log("✅ Successfully authorized!\n");
+        } else if (data.status === "expired") {
+          console.log("❌ Device code expired. Please run the command again.");
+          process.exit(1);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to connect to the authorization server.");
+      process.exit(1);
+    }
   }
 
   // 1. Initialize the LLM
   const model = new ChatGoogleGenerativeAI({
     model: "gemini-3.5-flash", // or your preferred model
     temperature: 0,
-    apiKey: geminiKey,
+    apiKey: geminiKey as string,
   });
 
   // 2. Initialize the KeeperGate Toolkit
