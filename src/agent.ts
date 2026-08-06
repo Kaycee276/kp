@@ -5,6 +5,7 @@ import { DynamicStructuredTool } from "@langchain/core/tools";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
 import * as dotenv from "dotenv";
+import * as readline from "readline";
 
 // Load environment variables
 dotenv.config();
@@ -92,28 +93,48 @@ async function main() {
       "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
   });
 
-  // 4. Run the Agent with Retry Logic
-  const input =
-    "Execute a transaction to send 0.001 ETH to vitalik.eth on the Sepolia network using KeeperHub. Return the transaction hash once it is executed.";
+  // 4. Run the Agent interactively
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
 
-  console.log(`\n🤖 Executing prompt: "${input}"\n`);
+  console.log("\n🤖 KP is ready! Type your command (or 'exit' to quit):");
 
-  try {
-    const result = await withRetry(async () => {
-      return await agent.invoke({
-        messages: [["human", input]],
-      });
+  const chatLoop = () => {
+    rl.question("\n> ", async (input) => {
+      if (input.toLowerCase() === "exit" || input.toLowerCase() === "quit") {
+        rl.close();
+        return;
+      }
+
+      if (!input.trim()) {
+        chatLoop();
+        return;
+      }
+
+      try {
+        const result = await withRetry(async () => {
+          return await agent.invoke({
+            messages: [["human", input]],
+          });
+        });
+
+        const lastMessage = result.messages[result.messages.length - 1];
+        if (lastMessage) {
+          console.log("\n✅ KP:", lastMessage.content);
+        } else {
+          console.log("\n✅ KP: No response.");
+        }
+      } catch (error: any) {
+        console.error("\n❌ Agent execution failed:", error.message);
+      }
+
+      chatLoop();
     });
+  };
 
-    const lastMessage = result.messages[result.messages.length - 1];
-    if (lastMessage) {
-      console.log("\n✅ Result:", lastMessage.content);
-    } else {
-      console.log("\n✅ Result: No response.");
-    }
-  } catch (error: any) {
-    console.error("\n❌ Agent execution failed completely:", error);
-  }
+  chatLoop();
 }
 
 main().catch((error) => {
