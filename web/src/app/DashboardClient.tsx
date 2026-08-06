@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Key, Save, CheckCircle2 } from "lucide-react";
+import { Key, CheckCircle2 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardClient({
