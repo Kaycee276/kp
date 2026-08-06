@@ -30,6 +30,8 @@ export default function DashboardClient({
       });
       if (res.ok) {
         setSaved(true);
+        setGeminiKey("");
+        setKeeperhubKey("");
         if (callbackUrl) {
           router.push(callbackUrl);
         } else {
@@ -100,10 +102,7 @@ export default function DashboardClient({
                 <CheckCircle2 className="w-4 h-4" /> Saved
               </>
             ) : (
-              <>
-                <Save className="w-4 h-4" />{" "}
-                {isSaving ? "Saving..." : "Save Keys"}
-              </>
+              <>{isSaving ? "Saving..." : "Save Keys"}</>
             )}
           </button>
         </div>
