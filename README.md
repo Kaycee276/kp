@@ -37,15 +37,19 @@ The project consists of two main components:
 
 You can install KP globally and run it from anywhere on your computer!
 
-1. **Clone the repository and build the CLI:**
+**Mac/Linux:**
 
-   ```bash
-   git clone https://github.com/Kaycee276/kp.git
-   cd kp
-   npm install
-   npm run build
-   npm link
-   ```
+```bash
+curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex
+```
+
+> **Note:** The installation scripts are hosted on the Vercel frontend domain (`kp-three-mu.vercel.app`) for a shorter, cleaner installation command. The source code for these scripts can be found in the `web/public/` directory of this repository.
 
 2. **Run the agent:**
 

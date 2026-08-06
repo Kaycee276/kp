@@ -82,19 +82,24 @@ export default async function Home() {
               <p className="text-gray-400 mb-6">
                 Clone the repository and link the CLI globally to your system.
               </p>
-              <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
-                <CopyButton
-                  text={`git clone https://github.com/Kaycee276/kp.git\ncd kp\nnpm install\nnpm run build\nnpm link`}
-                />
-                git clone https://github.com/Kaycee276/kp.git
-                <br />
-                cd kp
-                <br />
-                npm install
-                <br />
-                npm run build
-                <br />
-                npm link
+              <div className="space-y-4">
+                <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+                  <CopyButton
+                    text={`curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash`}
+                  />
+                  <span className="text-gray-500"># Mac/Linux</span>
+                  <br />
+                  curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash
+                </div>
+
+                <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+                  <CopyButton
+                    text={`iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex`}
+                  />
+                  <span className="text-gray-500"># Windows (PowerShell)</span>
+                  <br />
+                  iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex
+                </div>
               </div>
             </div>
 
