@@ -72,7 +72,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-kp-card/50 backdrop-blur-xl p-8 hover:bg-kp-card transition-colors">
               <div className="w-12 h-12 bg-kp-accent/10 flex items-center justify-center mb-6">
                 <span className="text-2xl font-bold text-kp-accent">1</span>
@@ -109,6 +109,22 @@ export default async function Home() {
               <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
                 <CopyButton text="kp" />
                 kp
+              </div>
+            </div>
+
+            <div className="bg-kp-card/50 backdrop-blur-xl p-8 hover:bg-kp-card transition-colors">
+              <div className="w-12 h-12 bg-kp-accent/10 flex items-center justify-center mb-6">
+                <span className="text-2xl font-bold text-kp-accent">3</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Uninstall</h3>
+              <p className="text-gray-400 mb-6">
+                Remove the CLI and clean up your local configuration.
+              </p>
+              <div className="bg-[#0b1120] p-4 font-mono text-sm text-gray-300 relative group">
+                <CopyButton text={`npm unlink\nrm ~/.kp-config.json`} />
+                npm unlink
+                <br />
+                rm ~/.kp-config.json
               </div>
             </div>
           </div>
