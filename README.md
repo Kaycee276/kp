@@ -20,27 +20,32 @@ This template solves two major onboarding problems:
 - A Gemini API Key (Get one for free at [Google AI Studio](https://aistudio.google.com/app/apikey))
 - Some testnet ETH in your KeeperHub wallet (e.g., Sepolia ETH).
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Interactive CLI)
 
-1. **Clone the repository and install dependencies:**
+You can install KP globally and run it from anywhere on your computer!
+
+1. **Clone the repository and build the CLI:**
 
    ```bash
    git clone https://github.com/Kaycee276/kp.git
    cd kp
    npm install
+   npm run build
+   npm link
    ```
 
-2. **Set up your environment variables:**
+2. **Run the agent:**
 
    ```bash
-   cp .env.example .env
+   kp
    ```
 
-   Edit `.env` and add your `GEMINI_API_KEY` and `KEEPERHUB_API_KEY`.
+   _The first time you run it, it will interactively ask for your Gemini and KeeperHub API keys and save them to `~/.kp-config.json`._
 
-3. **Run the agent:**
-   ```bash
-   npm start
+3. **Start chatting!**
+   ```
+   🤖 KP is ready! Type your command (or 'exit' to quit):
+   > Send 0.001 ETH to vitalik.eth on Sepolia
    ```
 
 ## 🧠 How the Gemini Wrapper Works
