@@ -41,7 +41,7 @@ export default function LinkClient({ deviceCode }: { deviceCode: string }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="bg-kp-bg px-6 py-3 font-mono text-xl tracking-widest border border-kp-border mb-8 text-white shadow-inner">
+      <div className="bg-kp-bg px-6 py-3 font-mono text-xl tracking-widest mb-8 text-white shadow-inner">
         {deviceCode}
       </div>
 

@@ -35,7 +35,7 @@ export default function DashboardClient({
   };
 
   return (
-    <div className="bg-kp-card border border-kp-border p-8 shadow-xl">
+    <div className="bg-kp-card p-8 shadow-xl">
       <div className="flex items-center gap-3 mb-6">
         <Key className="w-6 h-6 text-kp-accent" />
         <h2 className="text-xl font-bold text-white">API Keys</h2>
@@ -50,7 +50,7 @@ export default function DashboardClient({
             type="password"
             value={geminiKey}
             onChange={(e) => setGeminiKey(e.target.value)}
-            className="w-full bg-kp-bg border border-kp-border px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
+            className="w-full bg-kp-bg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
             placeholder="AIzaSy..."
           />
           <p className="mt-2 text-xs text-gray-500">
@@ -67,7 +67,7 @@ export default function DashboardClient({
             type="password"
             value={keeperhubKey}
             onChange={(e) => setKeeperhubKey(e.target.value)}
-            className="w-full bg-kp-bg border border-kp-border px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
+            className="w-full bg-kp-bg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-kp-accent/50 focus:border-kp-accent transition-all shadow-sm"
             placeholder="kh_..."
           />
           <p className="mt-2 text-xs text-gray-500">
@@ -76,7 +76,7 @@ export default function DashboardClient({
           </p>
         </div>
 
-        <div className="pt-4 border-t border-kp-border flex items-center justify-between">
+        <div className="pt-4 flex items-center justify-between">
           <p className="text-sm text-gray-500">
             These keys are stored securely and only accessible by your CLI via
             the device flow.

@@ -17,7 +17,7 @@ export default function LoginButton() {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-kp-card border border-kp-border p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-kp-card p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
