@@ -7,9 +7,34 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { z } from "zod";
 import * as dotenv from "dotenv";
 import * as readline from "readline";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
 
 // Load environment variables
 dotenv.config();
+
+const CONFIG_PATH = path.join(os.homedir(), ".kp-config.json");
+
+interface Config {
+  GEMINI_API_KEY?: string;
+  KEEPERHUB_API_KEY?: string;
+}
+
+function loadConfig(): Config {
+  if (fs.existsSync(CONFIG_PATH)) {
+    try {
+      return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+    } catch (e) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function saveConfig(config: Config) {
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+}
 
 /**
  * A simple retry wrapper to handle transient errors (e.g., network issues, gas spikes).
@@ -41,22 +66,47 @@ async function withRetry<T>(
 }
 
 async function main() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const askQuestion = (query: string): Promise<string> => {
+    return new Promise((resolve) => rl.question(query, resolve));
+  };
+
+  let config = loadConfig();
+  let geminiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
+  let keeperhubKey = process.env.KEEPERHUB_API_KEY || config.KEEPERHUB_API_KEY;
+
+  if (!geminiKey) {
+    console.log(
+      "Gemini API Key is missing. Get one for free at https://aistudio.google.com/app/apikey",
+    );
+    geminiKey = await askQuestion("Enter your Gemini API Key: ");
+    config.GEMINI_API_KEY = geminiKey;
+    saveConfig(config);
+  }
+
+  if (!keeperhubKey) {
+    console.log(
+      "KeeperHub API Key is missing. Get one at https://app.keeperhub.com",
+    );
+    keeperhubKey = await askQuestion("Enter your KeeperHub API Key: ");
+    config.KEEPERHUB_API_KEY = keeperhubKey;
+    saveConfig(config);
+  }
+
   // 1. Initialize the LLM
   const model = new ChatGoogleGenerativeAI({
     model: "gemini-3.5-flash", // or your preferred model
     temperature: 0,
-    apiKey: process.env.GEMINI_API_KEY || "",
+    apiKey: geminiKey,
   });
 
   // 2. Initialize the KeeperGate Toolkit
-  // This automatically loads the tools available to your KeeperHub organization
-  const apiKey = process.env.KEEPERHUB_API_KEY;
-  if (!apiKey) {
-    throw new Error("KEEPERHUB_API_KEY environment variable is missing.");
-  }
-
   const toolkit = new KeeperGateToolkit({
-    apiKey: apiKey,
+    apiKey: keeperhubKey,
   });
   const tools = await toolkit.getTools();
 
@@ -95,11 +145,6 @@ async function main() {
   });
 
   // 4. Run the Agent interactively
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
   console.log("\n🤖 KP is ready! Type your command (or 'exit' to quit):");
 
   const chatLoop = () => {
