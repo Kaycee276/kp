@@ -89,12 +89,12 @@ async function main() {
     model,
     tools: geminiCompatibleTools as any,
     systemPrompt:
-      "You are a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
+      "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
   });
 
   // 4. Run the Agent with Retry Logic
   const input =
-    "Check my KeeperHub workflows. If I have a workflow for sending ETH, prepare a transaction to send 0.001 ETH to vitalik.eth, but DO NOT execute it yet. Just show me the prepared transaction data.";
+    "Execute a transaction to send 0.001 ETH to vitalik.eth on the Sepolia network using KeeperHub. Return the transaction hash once it is executed.";
 
   console.log(`\n🤖 Executing prompt: "${input}"\n`);
 
