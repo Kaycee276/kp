@@ -10,12 +10,43 @@ import * as readline from "readline";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import pc from "picocolors";
 
 // Load environment variables
 dotenv.config();
 
 const CONFIG_PATH = path.join(os.homedir(), ".kp-config.json");
+
+// ANSI Color Codes
+const colors = {
+  reset: "\x1b[0m",
+  cyan: "\x1b[36m",
+  green: "\x1b[32m",
+  red: "\x1b[31m",
+  yellow: "\x1b[33m",
+  dim: "\x1b[2m",
+};
+
+class Spinner {
+  private timer: NodeJS.Timeout | null = null;
+  private frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  private i = 0;
+
+  start(text: string) {
+    this.i = 0;
+    process.stdout.write(`\x1b[?25l`); // hide cursor
+    this.timer = setInterval(() => {
+      process.stdout.write(
+        `\r${colors.cyan}${this.frames[this.i]}${colors.reset} ${text}`,
+      );
+      this.i = (this.i + 1) % this.frames.length;
+    }, 80);
+  }
+
+  stop() {
+    if (this.timer) clearInterval(this.timer);
+    process.stdout.write(`\r\x1b[2K\x1b[?25h`); // clear line and show cursor
+  }
+}
 
 interface Config {
   GEMINI_API_KEY?: string;
@@ -53,12 +84,12 @@ async function withRetry<T>(
     } catch (error: any) {
       lastError = error;
       console.warn(
-        pc.yellow(
-          `[WARN] Attempt ${i + 1}/${maxRetries} failed: ${error.message}`,
-        ),
+        `${colors.yellow}[WARN] Attempt ${i + 1}/${maxRetries} failed: ${error.message}${colors.reset}`,
       );
       if (i < maxRetries - 1) {
-        console.log(pc.dim(`Retrying in ${delayMs / 1000} seconds...`));
+        console.log(
+          `${colors.dim}Retrying in ${delayMs / 1000} seconds...${colors.reset}`,
+        );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
@@ -83,8 +114,12 @@ async function main() {
   let keeperhubKey = process.env.KEEPERHUB_API_KEY || config.KEEPERHUB_API_KEY;
 
   if (!geminiKey || !keeperhubKey) {
-    console.log(pc.cyan("\n[AUTH] Authentication Required"));
-    console.log(pc.dim("Initializing device authorization flow..."));
+    console.log(
+      `${colors.cyan}\n[AUTH] Authentication Required${colors.reset}`,
+    );
+    console.log(
+      `${colors.dim}Initializing device authorization flow...${colors.reset}`,
+    );
 
     const FRONTEND_URL = "https://kp-three-mu.vercel.app";
 
@@ -95,14 +130,16 @@ async function main() {
       const { deviceCode } = await initRes.json();
 
       console.log(
-        pc.dim(`\n--------------------------------------------------`),
+        `${colors.dim}\n--------------------------------------------------${colors.reset}`,
       );
       console.log(`Please visit the following URL to authorize this CLI:`);
-      console.log(pc.green(` ${FRONTEND_URL}/link?code=${deviceCode}`));
       console.log(
-        pc.dim(`--------------------------------------------------\n`),
+        `${colors.green} ${FRONTEND_URL}/link?code=${deviceCode}${colors.reset}`,
       );
-      console.log(pc.dim("Waiting for authorization..."));
+      console.log(
+        `${colors.dim}--------------------------------------------------\n${colors.reset}`,
+      );
+      console.log(`${colors.dim}Waiting for authorization...${colors.reset}`);
 
       // Poll for authorization
       let authorized = false;
@@ -124,17 +161,19 @@ async function main() {
           config.KEEPERHUB_API_KEY = keeperhubKey;
           saveConfig(config);
           authorized = true;
-          console.log(pc.green("[AUTH] Successfully authorized!\n"));
+          console.log(
+            `${colors.green}[AUTH] Successfully authorized!\n${colors.reset}`,
+          );
         } else if (data.status === "expired") {
           console.log(
-            pc.red("[AUTH] Device code expired. Please run the command again."),
+            `${colors.red}[AUTH] Device code expired. Please run the command again.${colors.reset}`,
           );
           process.exit(1);
         }
       }
     } catch (e) {
       console.error(
-        pc.red("[ERROR] Failed to connect to the authorization server."),
+        `${colors.red}[ERROR] Failed to connect to the authorization server.${colors.reset}`,
       );
       process.exit(1);
     }
@@ -153,7 +192,9 @@ async function main() {
   });
   const tools = await toolkit.getTools();
 
-  console.log(pc.dim(`[SYSTEM] Loaded ${tools.length} KeeperHub tools.`));
+  console.log(
+    `${colors.dim}[SYSTEM] Loaded ${tools.length} KeeperHub tools.${colors.reset}`,
+  );
 
   // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
   const geminiCompatibleTools = tools.map((tool: any) => {
@@ -188,10 +229,14 @@ async function main() {
   });
 
   // 4. Run the Agent interactively
-  console.log(pc.cyan("\n[KP] Ready. Type your command (or 'exit' to quit):"));
+  console.log(
+    `${colors.cyan}\n[KP] Ready. Type your command (or 'exit' to quit):${colors.reset}`,
+  );
+
+  const spinner = new Spinner();
 
   const chatLoop = () => {
-    rl.question(pc.cyan("\nkp> "), async (input) => {
+    rl.question(`${colors.cyan}\nkp> ${colors.reset}`, async (input) => {
       if (input.toLowerCase() === "exit" || input.toLowerCase() === "quit") {
         rl.close();
         return;
@@ -202,6 +247,8 @@ async function main() {
         return;
       }
 
+      spinner.start("Agent is thinking and executing...");
+
       try {
         const result = await withRetry(async () => {
           return await agent.invoke({
@@ -209,15 +256,21 @@ async function main() {
           });
         });
 
+        spinner.stop();
+
         const lastMessage = result.messages[result.messages.length - 1];
         if (lastMessage) {
-          console.log(pc.green("\n[KP] ") + lastMessage.content);
+          console.log(
+            `${colors.green}\n[KP] ${colors.reset}` + lastMessage.content,
+          );
         } else {
-          console.log(pc.dim("\n[KP] No response."));
+          console.log(`${colors.dim}\n[KP] No response.${colors.reset}`);
         }
       } catch (error: any) {
+        spinner.stop();
         console.error(
-          pc.red("\n[ERROR] Agent execution failed: ") + error.message,
+          `${colors.red}\n[ERROR] Agent execution failed: ${colors.reset}` +
+            error.message,
         );
       }
 
@@ -229,6 +282,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(pc.red("[FATAL] ") + error);
+  console.error(`${colors.red}[FATAL] ${colors.reset}` + error);
   process.exit(1);
 });
