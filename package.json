@@ -11,10 +11,10 @@
   "version": "1.0.0",
   "description": "",
   "bin": {
-    "kp": "./dist/agent.js"
+    "kp": "./dist/agent.cjs"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "esbuild src/agent.ts --bundle --platform=node --target=node18 --outfile=dist/agent.cjs --format=cjs",
     "start": "tsx src/agent.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -32,6 +32,7 @@
   "homepage": "https://github.com/Kaycee276/kp#readme",
   "devDependencies": {
     "@types/node": "^26.1.2",
+    "esbuild": "^0.28.1",
     "tsx": "^4.23.8",
     "typescript": "^7.0.2"
   }
