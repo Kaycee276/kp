@@ -10,6 +10,7 @@ import * as readline from "readline";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import pc from "picocolors";
 
 // Load environment variables
 dotenv.config();
@@ -52,10 +53,12 @@ async function withRetry<T>(
     } catch (error: any) {
       lastError = error;
       console.warn(
-        `[Attempt ${i + 1}/${maxRetries}] Operation failed: ${error.message}`,
+        pc.yellow(
+          `[WARN] Attempt ${i + 1}/${maxRetries} failed: ${error.message}`,
+        ),
       );
       if (i < maxRetries - 1) {
-        console.log(`Retrying in ${delayMs / 1000} seconds...`);
+        console.log(pc.dim(`Retrying in ${delayMs / 1000} seconds...`));
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
@@ -80,8 +83,8 @@ async function main() {
   let keeperhubKey = process.env.KEEPERHUB_API_KEY || config.KEEPERHUB_API_KEY;
 
   if (!geminiKey || !keeperhubKey) {
-    console.log("\n Authentication Required");
-    console.log("Initializing device authorization flow...");
+    console.log(pc.cyan("\n[AUTH] Authentication Required"));
+    console.log(pc.dim("Initializing device authorization flow..."));
 
     const FRONTEND_URL = "https://kp-three-mu.vercel.app";
 
@@ -91,11 +94,15 @@ async function main() {
       });
       const { deviceCode } = await initRes.json();
 
-      console.log(`\n==================================================`);
+      console.log(
+        pc.dim(`\n--------------------------------------------------`),
+      );
       console.log(`Please visit the following URL to authorize this CLI:`);
-      console.log(` ${FRONTEND_URL}/link?code=${deviceCode}`);
-      console.log(`==================================================\n`);
-      console.log("Waiting for authorization...");
+      console.log(pc.green(` ${FRONTEND_URL}/link?code=${deviceCode}`));
+      console.log(
+        pc.dim(`--------------------------------------------------\n`),
+      );
+      console.log(pc.dim("Waiting for authorization..."));
 
       // Poll for authorization
       let authorized = false;
@@ -117,14 +124,18 @@ async function main() {
           config.KEEPERHUB_API_KEY = keeperhubKey;
           saveConfig(config);
           authorized = true;
-          console.log(" Successfully authorized!\n");
+          console.log(pc.green("[AUTH] Successfully authorized!\n"));
         } else if (data.status === "expired") {
-          console.log(" Device code expired. Please run the command again.");
+          console.log(
+            pc.red("[AUTH] Device code expired. Please run the command again."),
+          );
           process.exit(1);
         }
       }
     } catch (e) {
-      console.error("Failed to connect to the authorization server.");
+      console.error(
+        pc.red("[ERROR] Failed to connect to the authorization server."),
+      );
       process.exit(1);
     }
   }
@@ -142,7 +153,7 @@ async function main() {
   });
   const tools = await toolkit.getTools();
 
-  console.log(`Loaded ${tools.length} KeeperHub tools.`);
+  console.log(pc.dim(`[SYSTEM] Loaded ${tools.length} KeeperHub tools.`));
 
   // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
   const geminiCompatibleTools = tools.map((tool: any) => {
@@ -177,10 +188,10 @@ async function main() {
   });
 
   // 4. Run the Agent interactively
-  console.log("\n🤖 KP is ready! Type your command (or 'exit' to quit):");
+  console.log(pc.cyan("\n[KP] Ready. Type your command (or 'exit' to quit):"));
 
   const chatLoop = () => {
-    rl.question("\n> ", async (input) => {
+    rl.question(pc.cyan("\nkp> "), async (input) => {
       if (input.toLowerCase() === "exit" || input.toLowerCase() === "quit") {
         rl.close();
         return;
@@ -200,12 +211,14 @@ async function main() {
 
         const lastMessage = result.messages[result.messages.length - 1];
         if (lastMessage) {
-          console.log("\n✅ KP:", lastMessage.content);
+          console.log(pc.green("\n[KP] ") + lastMessage.content);
         } else {
-          console.log("\n✅ KP: No response.");
+          console.log(pc.dim("\n[KP] No response."));
         }
       } catch (error: any) {
-        console.error("\n❌ Agent execution failed:", error.message);
+        console.error(
+          pc.red("\n[ERROR] Agent execution failed: ") + error.message,
+        );
       }
 
       chatLoop();
@@ -216,6 +229,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Fatal error:", error);
+  console.error(pc.red("[FATAL] ") + error);
   process.exit(1);
 });

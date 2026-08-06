@@ -5,7 +5,8 @@
     "@langchain/openai": "^1.5.5",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "dotenv": "^17.4.2",
-    "langchain": "^1.5.4"
+    "langchain": "^1.5.4",
+    "picocolors": "^1.1.1"
   },
   "name": "kp",
   "version": "1.0.0",
