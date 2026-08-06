@@ -6,10 +6,11 @@ import LinkClient from "./LinkClient";
 export default async function LinkPage({
   searchParams,
 }: {
-  searchParams: { code?: string };
+  searchParams: Promise<{ code?: string }>;
 }) {
   const session = await getServerSession(authOptions);
-  const code = searchParams.code;
+  const params = await searchParams;
+  const code = params.code;
 
   if (!code) {
     return (
