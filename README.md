@@ -105,6 +105,24 @@ This agent (named **KP**) has successfully executed onchain transactions via Kee
 - **Action:** Transfer 0.001 ETH to `vitalik.eth`
 - **Transaction Hash:** [`0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3`](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3)
 
+## 🗑️ Uninstall
+
+If you want to remove the CLI and clean up your configuration:
+
+1. **Unlink the CLI:**
+   From inside the `kp` directory, run:
+
+   ```bash
+   npm unlink
+   ```
+
+   _(Alternatively, run `npm uninstall -g kp` from anywhere)._
+
+2. **Remove your local configuration file:**
+   ```bash
+   rm ~/.kp-config.json
+   ```
+
 ## 📄 License
 
 This project is licensed under the MIT License.
