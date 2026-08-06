@@ -1,17 +1,30 @@
-# KP: Zero-to-One KeeperHub Agent Template (Gemini Edition) 🚀
+# KP: Zero-to-One KeeperHub Agent Template 🚀
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Next.js](https://img.shields.io/badge/Next.js-15.0-black?logo=next.js)](https://nextjs.org/)
+[![KeeperHub](https://img.shields.io/badge/KeeperHub-Ready-0AB955)](https://keeperhub.com)
+[![Gemini](https://img.shields.io/badge/Gemini-Powered-blue?logo=google)](https://ai.google.dev/)
 
 A zero-to-one starter template for building AI agents that execute onchain transactions using [KeeperHub](https://keeperhub.com) and [LangChain](https://js.langchain.com/).
 
-This template is specifically designed for the **KeeperHub Hackathon** to target the "Best Onboarding UX Improvement" bounty. It gets developers from zero to their first onchain transaction as fast as possible, and **completely for free** by integrating Google's Gemini API.
+This template is specifically designed for the **KeeperHub Hackathon** to target the "Best Onboarding UX Improvement" bounty. It gets developers from zero to their first onchain transaction as fast as possible, with a **production-grade CLI and Web Dashboard experience**, and **completely for free** by integrating Google's Gemini API.
 
 ## 🌟 Why this template?
 
-Many agent frameworks struggle with the "last mile" of execution—actually submitting transactions onchain reliably. KeeperHub solves this, but setting up the connection and paying for LLM API keys (like OpenAI) can be a hurdle for new developers.
+Many agent frameworks struggle with the "last mile" of execution—actually submitting transactions onchain reliably. KeeperHub solves this, but setting up the connection, managing API keys securely, and paying for LLM API keys (like OpenAI) can be a hurdle for new developers.
 
-This template solves two major onboarding problems:
+This template solves three major onboarding problems:
 
-1. **Easy Integration:** It uses the official `@keepergate/langchain` adapter to seamlessly bridge LangChain's tool system with KeeperHub's execution layer.
-2. **Free Execution (The Gemini Schema Wrapper):** KeeperHub's complex tool schemas (which use `.nullish()` and `$ref`) are natively built for OpenAI. If you try to pass them to Gemini, the API throws a `400 Bad Request` due to strict schema validation. **This template includes a custom schema wrapper** that simplifies the payloads on the fly, allowing you to use Gemini's free tier to power your onchain agents!
+1. **Seamless UX (The Web Dashboard):** Instead of manually creating and editing `.env` files, users authenticate via a beautiful Next.js web dashboard using GitHub OAuth. The CLI uses a secure device authorization flow (similar to the GitHub CLI) to fetch the keys.
+2. **Easy Integration:** It uses the official `@keepergate/langchain` adapter to seamlessly bridge LangChain's tool system with KeeperHub's execution layer.
+3. **Free Execution (The Gemini Schema Wrapper):** KeeperHub's complex tool schemas (which use `.nullish()` and `$ref`) are natively built for OpenAI. If you try to pass them to Gemini, the API throws a `400 Bad Request` due to strict schema validation. **This template includes a custom schema wrapper** that simplifies the payloads on the fly, allowing you to use Gemini's free tier to power your onchain agents!
+
+## 🏗️ Architecture
+
+The project consists of two main components:
+
+1. **The Web Dashboard (`/web`):** A Next.js App Router application deployed on Vercel. It uses NextAuth for GitHub authentication and a Neon PostgreSQL database (via Prisma) to securely store user API keys.
+2. **The CLI Agent (`/src`):** A Node.js CLI application that implements the LangChain agent, the Gemini schema wrapper, and the device authorization polling flow.
 
 ## 🛠️ Prerequisites
 
@@ -20,7 +33,7 @@ This template solves two major onboarding problems:
 - A Gemini API Key (Get one for free at [Google AI Studio](https://aistudio.google.com/app/apikey))
 - Some testnet ETH in your KeeperHub wallet (e.g., Sepolia ETH).
 
-## 🚀 Quick Start (Interactive CLI)
+## 🚀 Quick Start
 
 You can install KP globally and run it from anywhere on your computer!
 
@@ -40,9 +53,15 @@ You can install KP globally and run it from anywhere on your computer!
    kp
    ```
 
-   _The first time you run it, it will interactively ask for your Gemini and KeeperHub API keys and save them to `~/.kp-config.json`._
+3. **Authorize your device:**
 
-3. **Start chatting!**
+   The CLI will automatically generate a secure device code and open your browser to the KP Web Dashboard.
+   - Sign in with GitHub.
+   - Save your Gemini and KeeperHub API keys in the dashboard.
+   - Click "Authorize Device".
+   - The CLI will automatically detect the authorization and start the agent!
+
+4. **Start chatting!**
    ```
    🤖 KP is ready! Type your command (or 'exit' to quit):
    > Send 0.001 ETH to vitalik.eth on Sepolia
@@ -86,4 +105,6 @@ This agent (named **KP**) has successfully executed onchain transactions via Kee
 - **Action:** Transfer 0.001 ETH to `vitalik.eth`
 - **Transaction Hash:** [`0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3`](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3)
 
-_(Demo video link to be added here)_
+## 📄 License
+
+This project is licensed under the MIT License.
