@@ -275,17 +275,16 @@ async function main() {
     },
   });
 
-  tools.push(getEvmBalanceTool);
-  tools.push(getSolanaBalanceTool);
+  const allTools = [...tools, getEvmBalanceTool, getSolanaBalanceTool];
 
   console.log(
-    `${colors.dim}[SYSTEM] Loaded ${tools.length} tools (KeeperHub + Read Capabilities).${colors.reset}`,
+    `${colors.dim}[SYSTEM] Loaded ${allTools.length} tools (KeeperHub + Read Capabilities).${colors.reset}`,
   );
 
   const spinner = new Spinner();
 
   // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
-  const geminiCompatibleTools = tools.map((tool: any) => {
+  const geminiCompatibleTools = allTools.map((tool: any) => {
     const schemaJson = JSON.stringify(zodToJsonSchema(tool.schema));
     return new DynamicStructuredTool({
       name: tool.name,
