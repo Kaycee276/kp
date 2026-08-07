@@ -196,6 +196,8 @@ async function main() {
     `${colors.dim}[SYSTEM] Loaded ${tools.length} KeeperHub tools.${colors.reset}`,
   );
 
+  const spinner = new Spinner();
+
   // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
   const geminiCompatibleTools = tools.map((tool: any) => {
     const schemaJson = JSON.stringify(zodToJsonSchema(tool.schema));
@@ -212,6 +214,22 @@ async function main() {
       func: async (args) => {
         try {
           const parsedArgs = JSON.parse(args.args);
+          
+          spinner.stop();
+          console.log(`\n${colors.yellow}[CONFIRMATION REQUIRED]${colors.reset}`);
+          console.log(`The agent wants to execute: ${colors.cyan}${tool.name}${colors.reset}`);
+          console.log(`Arguments: ${colors.dim}${JSON.stringify(parsedArgs, null, 2)}${colors.reset}`);
+          
+          const answer = await askQuestion(`${colors.yellow}Proceed? (y/N): ${colors.reset}`);
+          
+          if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
+             console.log(`${colors.red}[REJECTED] Transaction cancelled by user.${colors.reset}`);
+             spinner.start("Agent is thinking...");
+             return "User rejected the transaction. Do not attempt to execute it again. Ask the user what they want to do next.";
+          }
+
+          console.log(`${colors.green}[APPROVED] Executing transaction...${colors.reset}`);
+          spinner.start("Executing onchain transaction...");
           return await tool.invoke(parsedArgs);
         } catch (e: any) {
           return `Error parsing or executing tool: ${e.message}`;
@@ -232,8 +250,6 @@ async function main() {
   console.log(
     `${colors.cyan}\n[KP] Ready. Type your command (or 'exit' to quit):${colors.reset}`,
   );
-
-  const spinner = new Spinner();
 
   const chatLoop = () => {
     rl.question(`${colors.cyan}\nkp> ${colors.reset}`, async (input) => {
