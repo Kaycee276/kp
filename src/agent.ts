@@ -10,6 +10,16 @@ import * as readline from "readline";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import { createPublicClient, http, formatEther } from "viem";
+import {
+  mainnet,
+  base,
+  arbitrum,
+  optimism,
+  polygon,
+  sepolia,
+} from "viem/chains";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 // Load environment variables
 dotenv.config();
@@ -192,8 +202,84 @@ async function main() {
   });
   const tools = await toolkit.getTools();
 
+  const evmChains: Record<string, any> = {
+    ethereum: mainnet,
+    base,
+    arbitrum,
+    optimism,
+    polygon,
+    sepolia,
+  };
+
+  const getEvmBalanceTool = new DynamicStructuredTool({
+    name: "get_evm_balance",
+    description:
+      "Get the native token balance (ETH, MATIC, etc.) of an EVM address on a specific network.",
+    schema: z.object({
+      address: z.string().describe("The EVM address to check (e.g., 0x...)."),
+      network: z
+        .enum([
+          "ethereum",
+          "base",
+          "arbitrum",
+          "optimism",
+          "polygon",
+          "sepolia",
+        ])
+        .describe("The network to check the balance on."),
+    }),
+    func: async ({ address, network }) => {
+      try {
+        const chain = evmChains[network];
+        if (!chain) return `Error: Unsupported network ${network}`;
+
+        const client = createPublicClient({
+          chain,
+          transport: http(),
+        });
+
+        const balance = await client.getBalance({
+          address: address as `0x${string}`,
+        });
+        return `The balance of ${address} on ${network} is ${formatEther(balance)} native tokens.`;
+      } catch (e: any) {
+        return `Error fetching balance: ${e.message}`;
+      }
+    },
+  });
+
+  const getSolanaBalanceTool = new DynamicStructuredTool({
+    name: "get_solana_balance",
+    description: "Get the SOL balance of a Solana address.",
+    schema: z.object({
+      address: z.string().describe("The Solana address to check."),
+      network: z
+        .enum(["mainnet", "devnet"])
+        .describe("The Solana network to check (mainnet or devnet)."),
+    }),
+    func: async ({ address, network }) => {
+      try {
+        const endpoint =
+          network === "devnet"
+            ? "https://api.devnet.solana.com"
+            : "https://api.mainnet-beta.solana.com";
+
+        const connection = new Connection(endpoint);
+        const pubKey = new PublicKey(address);
+        const balance = await connection.getBalance(pubKey);
+
+        return `The balance of ${address} on Solana ${network} is ${balance / LAMPORTS_PER_SOL} SOL.`;
+      } catch (e: any) {
+        return `Error fetching Solana balance: ${e.message}`;
+      }
+    },
+  });
+
+  tools.push(getEvmBalanceTool);
+  tools.push(getSolanaBalanceTool);
+
   console.log(
-    `${colors.dim}[SYSTEM] Loaded ${tools.length} KeeperHub tools.${colors.reset}`,
+    `${colors.dim}[SYSTEM] Loaded ${tools.length} tools (KeeperHub + Read Capabilities).${colors.reset}`,
   );
 
   const spinner = new Spinner();
@@ -214,21 +300,33 @@ async function main() {
       func: async (args) => {
         try {
           const parsedArgs = JSON.parse(args.args);
-          
+
           spinner.stop();
-          console.log(`\n${colors.yellow}[CONFIRMATION REQUIRED]${colors.reset}`);
-          console.log(`The agent wants to execute: ${colors.cyan}${tool.name}${colors.reset}`);
-          console.log(`Arguments: ${colors.dim}${JSON.stringify(parsedArgs, null, 2)}${colors.reset}`);
-          
-          const answer = await askQuestion(`${colors.yellow}Proceed? (y/N): ${colors.reset}`);
-          
-          if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
-             console.log(`${colors.red}[REJECTED] Transaction cancelled by user.${colors.reset}`);
-             spinner.start("Agent is thinking...");
-             return "User rejected the transaction. Do not attempt to execute it again. Ask the user what they want to do next.";
+          console.log(
+            `\n${colors.yellow}[CONFIRMATION REQUIRED]${colors.reset}`,
+          );
+          console.log(
+            `The agent wants to execute: ${colors.cyan}${tool.name}${colors.reset}`,
+          );
+          console.log(
+            `Arguments: ${colors.dim}${JSON.stringify(parsedArgs, null, 2)}${colors.reset}`,
+          );
+
+          const answer = await askQuestion(
+            `${colors.yellow}Proceed? (y/N): ${colors.reset}`,
+          );
+
+          if (answer.toLowerCase() !== "y" && answer.toLowerCase() !== "yes") {
+            console.log(
+              `${colors.red}[REJECTED] Transaction cancelled by user.${colors.reset}`,
+            );
+            spinner.start("Agent is thinking...");
+            return "User rejected the transaction. Do not attempt to execute it again. Ask the user what they want to do next.";
           }
 
-          console.log(`${colors.green}[APPROVED] Executing transaction...${colors.reset}`);
+          console.log(
+            `${colors.green}[APPROVED] Executing transaction...${colors.reset}`,
+          );
           spinner.start("Executing onchain transaction...");
           return await tool.invoke(parsedArgs);
         } catch (e: any) {

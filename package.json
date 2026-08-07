@@ -4,8 +4,10 @@
     "@langchain/google-genai": "^2.2.0",
     "@langchain/openai": "^1.5.5",
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@solana/web3.js": "^1.98.4",
     "dotenv": "^17.4.2",
-    "langchain": "^1.5.4"
+    "langchain": "^1.5.4",
+    "viem": "^2.55.11"
   },
   "name": "kp",
   "version": "1.0.0",
