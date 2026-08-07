@@ -109,6 +109,20 @@ async function withRetry<T>(
   );
 }
 
+async function getKeeperHubUser(apiKey: string) {
+  try {
+    const res = await fetch("https://app.keeperhub.com/api/user", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    // Ignore errors
+  }
+  return null;
+}
+
 async function main() {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -335,12 +349,20 @@ async function main() {
     });
   });
 
+  const userProfile = await getKeeperHubUser(keeperhubKey as string);
+  const walletAddress = userProfile?.walletAddress;
+
+  const systemPrompt =
+    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction." +
+    (walletAddress
+      ? `\n\nThe user's KeeperHub wallet address is ${walletAddress}. If they ask to check their balance or perform an action without specifying an address, use this address.`
+      : "");
+
   // 3. Create the Agent using LangGraph
   const agent = createAgent({
     model,
     tools: geminiCompatibleTools as any,
-    systemPrompt:
-      "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.",
+    systemPrompt,
   });
 
   // 4. Run the Agent interactively
