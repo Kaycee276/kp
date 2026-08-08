@@ -30,12 +30,49 @@ const CONFIG_PATH = path.join(os.homedir(), ".kp-config.json");
 // ANSI Color Codes
 const colors = {
   reset: "\x1b[0m",
+  bold: "\x1b[1m",
   cyan: "\x1b[36m",
   green: "\x1b[32m",
   red: "\x1b[31m",
   yellow: "\x1b[33m",
+  magenta: "\x1b[35m",
   dim: "\x1b[2m",
 };
+
+/**
+  Formats markdown syntax for beautiful ANSI terminal rendering in CLI mode.
+ */
+function formatCliMarkdown(text: string): string {
+  let formatted = text;
+
+  // Code blocks ```language ... ```
+  formatted = formatted.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const lines = code.trim().split("\n");
+    const boxed = lines
+      .map(
+        (l: string) =>
+          `  ${colors.dim}│${colors.reset} ${colors.yellow}${l}${colors.reset}`,
+      )
+      .join("\n");
+    return `\n${colors.dim}┌─${lang ? `[ ${lang} ]` : "────────"}──${colors.reset}\n${boxed}\n${colors.dim}└──────────${colors.reset}\n`;
+  });
+
+  // Headers (# Header)
+  formatted = formatted.replace(/^### (.*$)/gm, `${colors.cyan}${colors.bold}▸ $1${colors.reset}`);
+  formatted = formatted.replace(/^## (.*$)/gm, `\n${colors.yellow}${colors.bold}■ $1${colors.reset}`);
+  formatted = formatted.replace(/^# (.*$)/gm, `\n${colors.green}${colors.bold}█ $1${colors.reset}`);
+
+  // Bold **text**
+  formatted = formatted.replace(/\*\*(.*?)\*\*/g, `${colors.bold}$1${colors.reset}`);
+
+  // Inline code `code`
+  formatted = formatted.replace(/`([^`]+)`/g, `${colors.cyan}$1${colors.reset}`);
+
+  // Bullet lists (* item or - item)
+  formatted = formatted.replace(/^[\*\-] (.*$)/gm, `  ${colors.cyan}•${colors.reset} $1`);
+
+  return formatted;
+}
 
 class Spinner {
   private timer: NodeJS.Timeout | null = null;
@@ -476,9 +513,10 @@ async function main() {
         spinner.stop();
 
         const lastMessage = result.messages[result.messages.length - 1];
-        if (lastMessage) {
+        if (lastMessage && lastMessage.content) {
+          const formatted = formatCliMarkdown(String(lastMessage.content));
           console.log(
-            `${colors.green}\n[KP] ${colors.reset}` + lastMessage.content,
+            `${colors.green}\n[KP] ${colors.reset}${formatted}`,
           );
         } else {
           console.log(`${colors.dim}\n[KP] No response.${colors.reset}`);

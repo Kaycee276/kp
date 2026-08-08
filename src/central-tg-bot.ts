@@ -96,6 +96,22 @@ async function validateGeminiKey(apiKey: string): Promise<boolean> {
   }
 }
 
+// Strip markdown symbols for clean plain text Telegram output
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/_(.*?)_/g, "$1")
+    .replace(/```[\s\S]*?```/g, (block) => {
+      return block.replace(/```\w*\n?/g, "").trim();
+    })
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#+\s+/gm, "")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+    .trim();
+}
+
 // Mask API key for profile view
 function maskKey(key: string | null | undefined): string {
   if (!key) return "Not set";
@@ -253,29 +269,27 @@ bot.start(async (ctx) => {
   userStates.set(chatId, "AWAITING_KEEPERHUB");
   return ctx.reply(
     "👋 Welcome to KP Onchain AI Agent!\n\n" +
-      "To get started, please reply with your **KeeperHub API Key**.\n" +
-      "_(Get your API key at https://app.keeperhub.com -> Settings -> API Keys)_\n\n" +
+      "To get started, please reply with your KeeperHub API Key.\n" +
+      "(Get your API key at https://app.keeperhub.com -> Settings -> API Keys)\n\n" +
       "Send /cancel anytime to abort.",
-    { parse_mode: "Markdown" },
   );
 });
 
 // Command: /help
 bot.command("help", (ctx) => {
   return ctx.reply(
-    "🤖 **KP Onchain AI Agent Help**\n\n" +
+    "🤖 KP Onchain AI Agent Help\n\n" +
       "KP allows you to query balances and execute onchain transactions directly from Telegram using KeeperHub!\n\n" +
-      "**Available Actions:**\n" +
+      "Available Actions:\n" +
       "• Check EVM balances (Ethereum, Base, Arbitrum, Optimism, Polygon, Sepolia)\n" +
       "• Check Solana balances (Mainnet, Devnet)\n" +
       "• Execute transfers, contract interactions & automation via KeeperHub\n\n" +
-      "**Bot Commands:**\n" +
+      "Bot Commands:\n" +
       "• /profile - Check connected wallets & API key status\n" +
       "• /reset - Update your KeeperHub API key\n" +
       "• /clear - Clear chat conversation memory\n" +
       "• /cancel - Cancel active key input prompt\n" +
       "• /help - Show this message",
-    { parse_mode: "Markdown" },
   );
 });
 
@@ -294,18 +308,17 @@ const handleProfile = async (ctx: any) => {
   const keeperProfile = await getKeeperHubUser(user.keeperhubKey);
 
   const msg =
-    "👤 **KP User Profile**\n\n" +
-    `• **KeeperHub Key:** \`${maskKey(user.keeperhubKey)}\`\n\n` +
-    "💳 **Connected KeeperHub Wallets:**\n" +
-    `• **EVM Address:** \`${keeperProfile?.walletAddress || "Not connected / Invalid key"}\`\n` +
-    `• **Solana Address:** \`${keeperProfile?.solanaWalletAddress || "Not connected / Invalid key"}\``;
+    "👤 KP User Profile\n\n" +
+    `• KeeperHub Key: ${maskKey(user.keeperhubKey)}\n\n` +
+    "💳 Connected KeeperHub Wallets:\n" +
+    `• EVM Address: ${keeperProfile?.walletAddress || "Not connected / Invalid key"}\n` +
+    `• Solana Address: ${keeperProfile?.solanaWalletAddress || "Not connected / Invalid key"}`;
 
   await ctx.telegram.editMessageText(
     chatId,
     statusMsg.message_id,
     undefined,
     msg,
-    { parse_mode: "Markdown" },
   );
 };
 
@@ -317,10 +330,9 @@ const handleReset = async (ctx: any) => {
   const chatId = ctx.chat.id.toString();
   userStates.set(chatId, "AWAITING_KEEPERHUB");
   return ctx.reply(
-    "🔄 **Resetting KeeperHub API Key**\n\n" +
-      "Please reply with your new **KeeperHub API Key**.\n" +
+    "🔄 Resetting KeeperHub API Key\n\n" +
+      "Please reply with your new KeeperHub API Key.\n" +
       "Send /cancel to abort.",
-    { parse_mode: "Markdown" },
   );
 };
 
@@ -365,9 +377,8 @@ bot.on("text", async (ctx) => {
         chatId,
         valMsg.message_id,
         undefined,
-        "❌ **Invalid KeeperHub API Key.**\n\n" +
+        "❌ Invalid KeeperHub API Key.\n\n" +
           "Could not fetch user profile from KeeperHub. Please verify your API Key at https://app.keeperhub.com -> Settings -> API Keys and try sending it again (or /cancel).",
-        { parse_mode: "Markdown" },
       );
       return;
     }
@@ -382,10 +393,9 @@ bot.on("text", async (ctx) => {
       chatId,
       valMsg.message_id,
       undefined,
-      "✅ **KeeperHub API Key verified and saved!** 🎉\n\n" +
+      "✅ KeeperHub API Key verified and saved! 🎉\n\n" +
         "⚙️ Setup is 100% complete! What would you like to do?\n" +
-        "_(e.g., 'Check my ETH balance on Sepolia')_",
-      { parse_mode: "Markdown" },
+        "(e.g., 'Check my ETH balance on Sepolia')",
     );
     return;
   }
@@ -394,8 +404,7 @@ bot.on("text", async (ctx) => {
   if (!user.keeperhubKey) {
     userStates.set(chatId, "AWAITING_KEEPERHUB");
     return ctx.reply(
-      "⚠️ KeeperHub API key is missing. Please send /start or reply with your **KeeperHub API Key**.",
-      { parse_mode: "Markdown" },
+      "⚠️ KeeperHub API key is missing. Please send /start or reply with your KeeperHub API Key.",
     );
   }
 
@@ -422,7 +431,8 @@ bot.on("text", async (ctx) => {
       history.push(["ai", outputText]);
       chatHistories.set(chatId, history);
 
-      const formatted = `✅ ${outputText}`;
+      const cleanText = stripMarkdown(outputText);
+      const formatted = `✅ ${cleanText}`;
 
       if (formatted.length <= 4000) {
         await ctx.telegram.editMessageText(
@@ -437,7 +447,7 @@ bot.on("text", async (ctx) => {
           chatId,
           msg.message_id,
           undefined,
-          formatted.substring(0, 3900) + "\n\n*(continued below...)*",
+          formatted.substring(0, 3900) + "\n\n(continued below...)",
         );
         for (let i = 3900; i < formatted.length; i += 3900) {
           await ctx.reply(formatted.substring(i, i + 3900));
