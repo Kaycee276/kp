@@ -252,7 +252,10 @@ async function createAgentForUser(keeperhubKey: string) {
   const solanaWalletAddress = userProfile?.solanaWalletAddress;
 
   let systemPrompt =
-    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.";
+    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.\n\n" +
+    "CRITICAL INSTRUCTIONS:\n" +
+    "1. NETWORK SELECTION FOR BALANCE QUERIES: If the user asks to check their balance or check their wallet without specifying a target network/chain (e.g. 'What is my wallet balance?'), DO NOT attempt to query multiple networks automatically. Instead, ask the user to specify which network they want to check (e.g. Sepolia, Ethereum, Base, Arbitrum, Optimism, Polygon, or Solana devnet/mainnet).\n" +
+    "2. READ vs WRITE: Read queries (like balance checks) are information-only. Write operations (transfers, token sends, contract executions) send crypto out.";
 
   if (evmWalletAddress) {
     systemPrompt += `\n\nThe user's KeeperHub EVM wallet address is ${evmWalletAddress}. If they ask to check their EVM balance or perform an EVM action without specifying an address, use this address.`;

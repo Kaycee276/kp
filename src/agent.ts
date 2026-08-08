@@ -338,6 +338,15 @@ async function main() {
 
   const spinner = new Spinner();
 
+function isWriteOrSendAction(toolName: string): boolean {
+  const readOnlyPrefixes = ["get_", "read_", "check_", "list_", "fetch_", "view_"];
+  const lower = toolName.toLowerCase();
+  if (readOnlyPrefixes.some((prefix) => lower.startsWith(prefix))) {
+    return false;
+  }
+  return true;
+}
+
   // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
   const geminiCompatibleTools = allTools.map((tool: any) => {
     const schemaJson = JSON.stringify(zodToJsonSchema(tool.schema));
@@ -355,10 +364,12 @@ async function main() {
         try {
           const parsedArgs = JSON.parse(args.args);
 
-          if (!isTgBot) {
+          const isWrite = isWriteOrSendAction(tool.name);
+
+          if (!isTgBot && isWrite) {
             spinner.stop();
             console.log(
-              `\n${colors.yellow}[CONFIRMATION REQUIRED]${colors.reset}`,
+              `\n${colors.yellow}[CONFIRMATION REQUIRED - SENDING TRANSACTION]${colors.reset}`,
             );
             console.log(
               `The agent wants to execute: ${colors.cyan}${tool.name}${colors.reset}`,
@@ -368,7 +379,7 @@ async function main() {
             );
 
             const answer = await askQuestion(
-              `${colors.yellow}Proceed? (y/N): ${colors.reset}`,
+              `${colors.yellow}Are you sure you want to send/execute this transaction? (y/N): ${colors.reset}`,
             );
 
             if (
@@ -401,7 +412,10 @@ async function main() {
   const solanaWalletAddress = userProfile?.solanaWalletAddress;
 
   let systemPrompt =
-    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.";
+    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.\n\n" +
+    "CRITICAL INSTRUCTIONS:\n" +
+    "1. NETWORK SELECTION FOR BALANCE QUERIES: If the user asks to check their balance or check their wallet without specifying a target network/chain (e.g. 'What is my wallet balance?'), DO NOT attempt to query multiple networks automatically. Instead, ask the user to specify which network they want to check (e.g. Sepolia, Ethereum, Base, Arbitrum, Optimism, Polygon, or Solana devnet/mainnet).\n" +
+    "2. READ vs WRITE: Read queries (like balance checks) are information-only. Write operations (transfers, token sends, contract executions) send crypto out.";
 
   if (evmWalletAddress) {
     systemPrompt += `\n\nThe user's KeeperHub EVM wallet address is ${evmWalletAddress}. If they ask to check their EVM balance or perform an EVM action without specifying an address, use this address.`;
