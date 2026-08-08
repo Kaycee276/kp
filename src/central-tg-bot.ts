@@ -102,10 +102,15 @@ function maskKey(key: string | null | undefined): string {
 const chatHistories = new Map<string, Array<[string, string]>>();
 const MAX_HISTORY_LENGTH = 10;
 
-// State machine for onboarding input steps
-const userStates = new Map<string, "AWAITING_GEMINI" | "AWAITING_KEEPERHUB">();
+// State machine for onboarding input steps (Single-step KeeperHub setup)
+const userStates = new Map<string, "AWAITING_KEEPERHUB">();
 
-async function createAgentForUser(geminiKey: string, keeperhubKey: string) {
+async function createAgentForUser(keeperhubKey: string) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    throw new Error("Centralized GEMINI_API_KEY environment variable is missing on server!");
+  }
+
   const model = new ChatGoogleGenerativeAI({
     model: "gemini-3.5-flash",
     temperature: 0,
@@ -228,23 +233,22 @@ bot.start(async (ctx) => {
     user = await prisma.telegramUser.create({ data: { chatId } });
   }
 
-  if (user.geminiKey && user.keeperhubKey) {
+  if (user.keeperhubKey) {
     return ctx.reply(
       "🤖 Welcome back to KP Onchain AI Agent!\n\n" +
-        "Your API keys are configured and ready. You can ask me to check balances or run transactions.\n\n" +
+        "Your KeeperHub account is connected and ready. Ask me to check balances or run transactions.\n\n" +
         "• /profile - View setup & wallet addresses\n" +
-        "• /reset - Update your API keys\n" +
+        "• /reset - Update your KeeperHub API key\n" +
         "• /clear - Reset conversation memory\n" +
         "• /help - View commands and help",
     );
   }
 
-  userStates.set(chatId, "AWAITING_GEMINI");
+  userStates.set(chatId, "AWAITING_KEEPERHUB");
   return ctx.reply(
     "👋 Welcome to KP Onchain AI Agent!\n\n" +
-      "Let's get you set up in two quick steps.\n\n" +
-      "1️⃣ Please reply with your **Gemini API Key**.\n" +
-      "_(Get a free key from Google AI Studio at https://aistudio.google.com/app/apikey)_\n\n" +
+      "To get started, please reply with your **KeeperHub API Key**.\n" +
+      "_(Get your API key at https://app.keeperhub.com -> Settings -> API Keys)_\n\n" +
       "Send /cancel anytime to abort.",
     { parse_mode: "Markdown" },
   );
@@ -254,14 +258,14 @@ bot.start(async (ctx) => {
 bot.command("help", (ctx) => {
   return ctx.reply(
     "🤖 **KP Onchain AI Agent Help**\n\n" +
-      "KP allows you to query balances and execute onchain transactions directly from Telegram using Gemini AI and KeeperHub.\n\n" +
+      "KP allows you to query balances and execute onchain transactions directly from Telegram using KeeperHub!\n\n" +
       "**Available Actions:**\n" +
       "• Check EVM balances (Ethereum, Base, Arbitrum, Optimism, Polygon, Sepolia)\n" +
       "• Check Solana balances (Mainnet, Devnet)\n" +
       "• Execute transfers, contract interactions & automation via KeeperHub\n\n" +
       "**Bot Commands:**\n" +
       "• /profile - Check connected wallets & API key status\n" +
-      "• /reset - Update Gemini & KeeperHub API keys\n" +
+      "• /reset - Update your KeeperHub API key\n" +
       "• /clear - Clear chat conversation memory\n" +
       "• /cancel - Cancel active key input prompt\n" +
       "• /help - Show this message",
@@ -274,20 +278,17 @@ const handleProfile = async (ctx: any) => {
   const chatId = ctx.chat.id.toString();
   const user = await prisma.telegramUser.findUnique({ where: { chatId } });
 
-  if (!user || (!user.geminiKey && !user.keeperhubKey)) {
+  if (!user || !user.keeperhubKey) {
     return ctx.reply(
-      "⚠️ You haven't configured your API keys yet. Send /start to begin setup.",
+      "⚠️ You haven't connected your KeeperHub API Key yet. Send /start to begin setup.",
     );
   }
 
   const statusMsg = await ctx.reply("⏳ Fetching wallet profile...");
-  const keeperProfile = user.keeperhubKey
-    ? await getKeeperHubUser(user.keeperhubKey)
-    : null;
+  const keeperProfile = await getKeeperHubUser(user.keeperhubKey);
 
   const msg =
     "👤 **KP User Profile**\n\n" +
-    `• **Gemini Key:** \`${maskKey(user.geminiKey)}\`\n` +
     `• **KeeperHub Key:** \`${maskKey(user.keeperhubKey)}\`\n\n` +
     "💳 **Connected KeeperHub Wallets:**\n" +
     `• **EVM Address:** \`${keeperProfile?.walletAddress || "Not connected / Invalid key"}\`\n` +
@@ -308,10 +309,10 @@ bot.command("status", handleProfile);
 // Command: /reset or /keys
 const handleReset = async (ctx: any) => {
   const chatId = ctx.chat.id.toString();
-  userStates.set(chatId, "AWAITING_GEMINI");
+  userStates.set(chatId, "AWAITING_KEEPERHUB");
   return ctx.reply(
-    "🔄 **Resetting API Keys**\n\n" +
-      "1️⃣ Please reply with your new **Gemini API Key**.\n" +
+    "🔄 **Resetting KeeperHub API Key**\n\n" +
+      "Please reply with your new **KeeperHub API Key**.\n" +
       "Send /cancel to abort.",
     { parse_mode: "Markdown" },
   );
@@ -347,46 +348,7 @@ bot.on("text", async (ctx) => {
   }
 
   const activeState =
-    userStates.get(chatId) ||
-    (!user.geminiKey
-      ? "AWAITING_GEMINI"
-      : !user.keeperhubKey
-        ? "AWAITING_KEEPERHUB"
-        : null);
-
-  if (activeState === "AWAITING_GEMINI") {
-    const valMsg = await ctx.reply("⏳ Validating Gemini API Key...");
-    const isValid = await validateGeminiKey(text);
-
-    if (!isValid) {
-      await ctx.telegram.editMessageText(
-        chatId,
-        valMsg.message_id,
-        undefined,
-        "❌ **Invalid Gemini API Key.**\n\n" +
-          "Could not authenticate with Gemini. Please verify your key at https://aistudio.google.com/app/apikey and try sending it again (or /cancel).",
-        { parse_mode: "Markdown" },
-      );
-      return;
-    }
-
-    await prisma.telegramUser.update({
-      where: { chatId },
-      data: { geminiKey: text },
-    });
-    userStates.set(chatId, "AWAITING_KEEPERHUB");
-
-    await ctx.telegram.editMessageText(
-      chatId,
-      valMsg.message_id,
-      undefined,
-      "✅ **Gemini API Key verified and saved!** 🎉\n\n" +
-        "2️⃣ Now, please reply with your **KeeperHub API Key**.\n" +
-        "_(Get your API key at https://app.keeperhub.com -> Settings -> API Keys)_",
-      { parse_mode: "Markdown" },
-    );
-    return;
-  }
+    userStates.get(chatId) || (!user.keeperhubKey ? "AWAITING_KEEPERHUB" : null);
 
   if (activeState === "AWAITING_KEEPERHUB") {
     const valMsg = await ctx.reply("⏳ Validating KeeperHub API Key...");
@@ -398,7 +360,7 @@ bot.on("text", async (ctx) => {
         valMsg.message_id,
         undefined,
         "❌ **Invalid KeeperHub API Key.**\n\n" +
-          "Could not fetch user profile from KeeperHub. Please verify your API Key at https://app.keeperhub.com and try sending it again (or /cancel).",
+          "Could not fetch user profile from KeeperHub. Please verify your API Key at https://app.keeperhub.com -> Settings -> API Keys and try sending it again (or /cancel).",
         { parse_mode: "Markdown" },
       );
       return;
@@ -423,10 +385,10 @@ bot.on("text", async (ctx) => {
   }
 
   // User is READY - execute AI Agent query
-  if (!user.geminiKey || !user.keeperhubKey) {
-    userStates.set(chatId, "AWAITING_GEMINI");
+  if (!user.keeperhubKey) {
+    userStates.set(chatId, "AWAITING_KEEPERHUB");
     return ctx.reply(
-      "⚠️ API keys are missing. Please send /start or reply with your **Gemini API Key**.",
+      "⚠️ KeeperHub API key is missing. Please send /start or reply with your **KeeperHub API Key**.",
       { parse_mode: "Markdown" },
     );
   }
@@ -442,7 +404,7 @@ bot.on("text", async (ctx) => {
       history.splice(0, history.length - MAX_HISTORY_LENGTH);
     }
 
-    const agent = await createAgentForUser(user.geminiKey, user.keeperhubKey);
+    const agent = await createAgentForUser(user.keeperhubKey);
 
     const result = await withRetry(async () => {
       return await agent.invoke({ messages: history });
