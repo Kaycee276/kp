@@ -1,5 +1,5 @@
 import { Telegraf } from "telegraf";
-import { PrismaClient } from "../web/node_modules/@prisma/client/index.js";
+import { PrismaClient } from "@prisma/client";
 import pg from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
