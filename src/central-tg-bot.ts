@@ -1,3 +1,6 @@
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { Telegraf } from "telegraf";
 import { PrismaClient } from "@prisma/client";
 import pg from "pg";
@@ -28,7 +31,9 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const botToken = process.env.TELEGRAM_BOT_TOKEN;
+const rawToken = process.env.TELEGRAM_BOT_TOKEN || "";
+const botToken = rawToken.trim().replace(/^["']|["']$/g, "");
+
 if (!botToken) {
   console.error("❌ TELEGRAM_BOT_TOKEN environment variable is not set in .env!");
   process.exit(1);
@@ -106,7 +111,8 @@ const MAX_HISTORY_LENGTH = 10;
 const userStates = new Map<string, "AWAITING_KEEPERHUB">();
 
 async function createAgentForUser(keeperhubKey: string) {
-  const geminiKey = process.env.GEMINI_API_KEY;
+  const rawGemini = process.env.GEMINI_API_KEY || "";
+  const geminiKey = rawGemini.trim().replace(/^["']|["']$/g, "");
   if (!geminiKey) {
     throw new Error("Centralized GEMINI_API_KEY environment variable is missing on server!");
   }
@@ -455,27 +461,39 @@ bot.on("text", async (ctx) => {
   }
 });
 
-// Set command menu for Telegram UI
-bot.telegram
-  .setMyCommands([
-    { command: "start", description: "Start or check setup" },
-    { command: "help", description: "Show usage help & available actions" },
-    { command: "profile", description: "View profile & connected wallets" },
-    { command: "reset", description: "Update Gemini & KeeperHub API keys" },
-    { command: "clear", description: "Clear conversation history" },
-    { command: "cancel", description: "Cancel key input prompt" },
-  ])
-  .catch((err) => console.warn("Failed to set bot commands:", err.message));
-
 // Global bot error handler
 bot.catch((err: any, ctx: any) => {
   console.error(`Telegram Bot Error during ${ctx.updateType}:`, err);
 });
 
-console.log("🤖 Centralized Telegram Bot is running...");
-bot.launch().catch((err) => {
-  console.error("❌ Failed to launch Telegram bot:", err.message);
-});
+async function main() {
+  try {
+    const me = await bot.telegram.getMe();
+    console.log(`🤖 Centralized Telegram Bot (@${me.username}) is running...`);
+
+    await bot.telegram
+      .setMyCommands([
+        { command: "start", description: "Start or check setup" },
+        { command: "help", description: "Show usage help & available actions" },
+        { command: "profile", description: "View profile & connected wallets" },
+        { command: "reset", description: "Update KeeperHub API key" },
+        { command: "clear", description: "Clear conversation history" },
+        { command: "cancel", description: "Cancel key input prompt" },
+      ])
+      .catch((err) => console.warn("Failed to set bot commands:", err.message));
+
+    await bot.launch();
+  } catch (err: any) {
+    console.error("❌ Failed to launch Telegram bot:", err.message || err);
+    if (err?.code === "ETIMEDOUT" || err?.type === "system") {
+      console.error(
+        "💡 Network issue: Unable to reach Telegram API (https://api.telegram.org). Please check your internet connection or proxy settings."
+      );
+    }
+  }
+}
+
+main();
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
