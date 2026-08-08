@@ -82,14 +82,10 @@ async function getKeeperHubUser(apiKey: string) {
 // Validate Gemini API Key
 async function validateGeminiKey(apiKey: string): Promise<boolean> {
   try {
-    const model = new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-flash",
-      temperature: 0,
-      apiKey: apiKey,
-      maxRetries: 0,
-    });
-    const response = await model.invoke("ping");
-    return !!response;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+    );
+    return res.ok;
   } catch (e) {
     return false;
   }
