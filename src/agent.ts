@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { KeeperGateToolkit } from "@keepergate/langchain";
+import { Telegraf } from "telegraf";
 import { createAgent } from "langchain";
 import { DynamicStructuredTool } from "@langchain/core/tools";
 import { zodToJsonSchema } from "zod-to-json-schema";
@@ -61,6 +62,7 @@ class Spinner {
 interface Config {
   GEMINI_API_KEY?: string;
   KEEPERHUB_API_KEY?: string;
+  TELEGRAM_BOT_TOKEN?: string;
 }
 
 function loadConfig(): Config {
@@ -136,6 +138,8 @@ async function main() {
   let config = loadConfig();
   let geminiKey = process.env.GEMINI_API_KEY || config.GEMINI_API_KEY;
   let keeperhubKey = process.env.KEEPERHUB_API_KEY || config.KEEPERHUB_API_KEY;
+
+  const isTgBot = process.argv.includes("--tg-bot");
 
   if (!geminiKey || !keeperhubKey) {
     console.log(
@@ -314,33 +318,39 @@ async function main() {
         try {
           const parsedArgs = JSON.parse(args.args);
 
-          spinner.stop();
-          console.log(
-            `\n${colors.yellow}[CONFIRMATION REQUIRED]${colors.reset}`,
-          );
-          console.log(
-            `The agent wants to execute: ${colors.cyan}${tool.name}${colors.reset}`,
-          );
-          console.log(
-            `Arguments: ${colors.dim}${JSON.stringify(parsedArgs, null, 2)}${colors.reset}`,
-          );
-
-          const answer = await askQuestion(
-            `${colors.yellow}Proceed? (y/N): ${colors.reset}`,
-          );
-
-          if (answer.toLowerCase() !== "y" && answer.toLowerCase() !== "yes") {
+          if (!isTgBot) {
+            spinner.stop();
             console.log(
-              `${colors.red}[REJECTED] Transaction cancelled by user.${colors.reset}`,
+              `\n${colors.yellow}[CONFIRMATION REQUIRED]${colors.reset}`,
             );
-            spinner.start("Agent is thinking...");
-            return "User rejected the transaction. Do not attempt to execute it again. Ask the user what they want to do next.";
+            console.log(
+              `The agent wants to execute: ${colors.cyan}${tool.name}${colors.reset}`,
+            );
+            console.log(
+              `Arguments: ${colors.dim}${JSON.stringify(parsedArgs, null, 2)}${colors.reset}`,
+            );
+
+            const answer = await askQuestion(
+              `${colors.yellow}Proceed? (y/N): ${colors.reset}`,
+            );
+
+            if (
+              answer.toLowerCase() !== "y" &&
+              answer.toLowerCase() !== "yes"
+            ) {
+              console.log(
+                `${colors.red}[REJECTED] Transaction cancelled by user.${colors.reset}`,
+              );
+              spinner.start("Agent is thinking...");
+              return "User rejected the transaction. Do not attempt to execute it again. Ask the user what they want to do next.";
+            }
+
+            console.log(
+              `${colors.green}[APPROVED] Executing transaction...${colors.reset}`,
+            );
+            spinner.start("Executing onchain transaction...");
           }
 
-          console.log(
-            `${colors.green}[APPROVED] Executing transaction...${colors.reset}`,
-          );
-          spinner.start("Executing onchain transaction...");
           return await tool.invoke(parsedArgs);
         } catch (e: any) {
           return `Error parsing or executing tool: ${e.message}`;
@@ -371,7 +381,73 @@ async function main() {
     systemPrompt,
   });
 
-  // 4. Run the Agent interactively
+  if (isTgBot) {
+    let tgToken = process.env.TELEGRAM_BOT_TOKEN || config.TELEGRAM_BOT_TOKEN;
+    if (!tgToken) {
+      tgToken = await askQuestion(
+        `${colors.yellow}Enter your Telegram Bot Token (from BotFather): ${colors.reset}`,
+      );
+      config.TELEGRAM_BOT_TOKEN = tgToken;
+      saveConfig(config);
+    }
+
+    const bot = new Telegraf(tgToken);
+
+    bot.start((ctx) => {
+      ctx.reply(
+        "🤖 KP Telegram Bot is online! Send me a command to execute onchain transactions.",
+      );
+    });
+
+    bot.on("text", async (ctx) => {
+      const input = ctx.message.text;
+      const msg = await ctx.reply("⏳ Agent is thinking and executing...");
+
+      try {
+        const result = await withRetry(async () => {
+          return await agent.invoke({
+            messages: [["human", input]],
+          });
+        });
+
+        const lastMessage = result.messages[result.messages.length - 1];
+        if (lastMessage) {
+          await ctx.telegram.editMessageText(
+            ctx.chat.id,
+            msg.message_id,
+            undefined,
+            `✅ ${lastMessage.content}`,
+          );
+        } else {
+          await ctx.telegram.editMessageText(
+            ctx.chat.id,
+            msg.message_id,
+            undefined,
+            "❌ No response from agent.",
+          );
+        }
+      } catch (error: any) {
+        await ctx.telegram.editMessageText(
+          ctx.chat.id,
+          msg.message_id,
+          undefined,
+          `❌ Error: ${error.message}`,
+        );
+      }
+    });
+
+    console.log(
+      `${colors.green}\n[KP] Telegram Bot is running! Press Ctrl+C to stop.${colors.reset}`,
+    );
+    bot.launch();
+
+    // Enable graceful stop
+    process.once("SIGINT", () => bot.stop("SIGINT"));
+    process.once("SIGTERM", () => bot.stop("SIGTERM"));
+    return;
+  }
+
+  // 4. Run the Agent interactively (CLI mode)
   console.log(
     `${colors.cyan}\n[KP] Ready. Type your command (or 'exit' to quit):${colors.reset}`,
   );
