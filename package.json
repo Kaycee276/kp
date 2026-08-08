@@ -4,9 +4,13 @@
     "@langchain/google-genai": "^2.2.0",
     "@langchain/openai": "^1.5.5",
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "@solana/web3.js": "^1.98.4",
+    "@types/pg": "^8.21.0",
     "dotenv": "^17.4.2",
     "langchain": "^1.5.4",
+    "pg": "^8.22.0",
     "telegraf": "^4.16.3",
     "viem": "^2.55.11"
   },
@@ -19,6 +23,7 @@
   "scripts": {
     "build": "esbuild src/agent.ts --bundle --platform=node --target=node18 --outfile=dist/agent.cjs --format=cjs",
     "start": "tsx src/agent.ts",
+    "tg-bot": "tsx src/central-tg-bot.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -36,6 +41,7 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "esbuild": "^0.28.1",
+    "prisma": "^7.9.1",
     "tsx": "^4.23.8",
     "typescript": "^7.0.2"
   }

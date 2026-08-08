@@ -62,3 +62,11 @@ model DeviceCode {
   status     String   @default("pending") // pending, authorized, expired
   user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model TelegramUser {
+  chatId       String   @id
+  geminiKey    String?
+  keeperhubKey String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
