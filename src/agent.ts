@@ -498,12 +498,64 @@ function isWriteOrSendAction(toolName: string): boolean {
     return;
   }
 
-const FALLBACK_MODELS = [
-  "gemini-3.5-flash",
-  "gemini-3.6-flash",
-  "gemini-2.0-flash-lite",
-  "gemini-2.0-flash",
-];
+// Cached list of available models fetched dynamically from Gemini API
+let cachedGeminiModelsCli: string[] | null = null;
+let currentModelIndexCli = 0;
+
+async function getAvailableGeminiModelsCli(apiKey: string): Promise<string[]> {
+  if (cachedGeminiModelsCli && cachedGeminiModelsCli.length > 0) {
+    return cachedGeminiModelsCli;
+  }
+
+  const preferredOrder = [
+    "gemini-3.5-flash",
+    "gemini-3.6-flash",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-2.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-latest",
+    "gemini-2.5-pro",
+  ];
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+    );
+    if (!res.ok) {
+      cachedGeminiModelsCli = preferredOrder;
+      return preferredOrder;
+    }
+    const data = await res.json();
+    const available = (data.models || [])
+      .filter((m: any) =>
+        m.supportedGenerationMethods?.includes("generateContent"),
+      )
+      .map((m: any) => m.name.replace("models/", ""));
+
+    const sorted = preferredOrder.filter((m) => available.includes(m));
+    for (const m of available) {
+      if (
+        !sorted.includes(m) &&
+        !m.includes("image") &&
+        !m.includes("tts") &&
+        !m.includes("clip") &&
+        !m.includes("robotics") &&
+        !m.includes("research") &&
+        !m.includes("gemma")
+      ) {
+        sorted.push(m);
+      }
+    }
+
+    cachedGeminiModelsCli = sorted.length > 0 ? sorted : preferredOrder;
+    return cachedGeminiModelsCli;
+  } catch (e) {
+    cachedGeminiModelsCli = preferredOrder;
+    return preferredOrder;
+  }
+}
 
 async function invokeAgentWithModelFallback(
   geminiKey: string,
@@ -511,9 +563,12 @@ async function invokeAgentWithModelFallback(
   systemPrompt: string,
   inputMessages: any[],
 ) {
-  let lastError: any;
+  const models = await getAvailableGeminiModelsCli(geminiKey);
+  let attemptsCount = 0;
+  const maxAttempts = models.length * 3;
 
-  for (const modelName of FALLBACK_MODELS) {
+  while (attemptsCount < maxAttempts) {
+    const modelName = models[currentModelIndexCli] || "gemini-3.5-flash";
     try {
       const model = new ChatGoogleGenerativeAI({
         model: modelName,
@@ -527,9 +582,11 @@ async function invokeAgentWithModelFallback(
         systemPrompt,
       });
 
-      return await agent.invoke({ messages: inputMessages });
+      const response = await agent.invoke({ messages: inputMessages });
+      // Keep currentModelIndexCli at this working model for future calls!
+      return response;
     } catch (error: any) {
-      lastError = error;
+      attemptsCount++;
       const isQuotaOrRateLimit =
         error?.status === 429 ||
         error?.message?.includes("429") ||
@@ -537,14 +594,25 @@ async function invokeAgentWithModelFallback(
         error?.message?.includes("Too Many Requests") ||
         error?.message?.includes("rate-limits");
 
-      if (
-        isQuotaOrRateLimit ||
-        error?.status === 404 ||
-        error?.message?.includes("404")
-      ) {
+      const isNotFound =
+        error?.status === 404 || error?.message?.includes("404");
+
+      if (isQuotaOrRateLimit || isNotFound) {
+        const prevModel = modelName;
+        currentModelIndexCli = (currentModelIndexCli + 1) % models.length;
+        const nextModel = models[currentModelIndexCli];
+
         console.warn(
-          `${colors.yellow}[WARN] Model '${modelName}' unavailable (${error?.status || "quota/rate limit"}). Trying fallback model...${colors.reset}`,
+          `${colors.yellow}[WARN] Model '${prevModel}' rate-limited/unavailable. Switching to next available model '${nextModel}' (${attemptsCount}/${maxAttempts})...${colors.reset}`,
         );
+
+        if (attemptsCount % models.length === 0) {
+          console.log(
+            `${colors.dim}[SYSTEM] Retried all ${models.length} available models. Pausing 5s for quota reset...${colors.reset}`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+        }
+
         continue;
       }
 
@@ -552,7 +620,7 @@ async function invokeAgentWithModelFallback(
     }
   }
 
-  throw lastError;
+  throw new Error("Exhausted all available Gemini fallback models after retrying.");
 }
 
   // 4. Run the Agent interactively (CLI mode)
