@@ -498,6 +498,63 @@ function isWriteOrSendAction(toolName: string): boolean {
     return;
   }
 
+const FALLBACK_MODELS = [
+  "gemini-3.5-flash",
+  "gemini-3.6-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-2.0-flash",
+];
+
+async function invokeAgentWithModelFallback(
+  geminiKey: string,
+  tools: any[],
+  systemPrompt: string,
+  inputMessages: any[],
+) {
+  let lastError: any;
+
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      const model = new ChatGoogleGenerativeAI({
+        model: modelName,
+        temperature: 0,
+        apiKey: geminiKey,
+      });
+
+      const agent = createAgent({
+        model,
+        tools: tools as any,
+        systemPrompt,
+      });
+
+      return await agent.invoke({ messages: inputMessages });
+    } catch (error: any) {
+      lastError = error;
+      const isQuotaOrRateLimit =
+        error?.status === 429 ||
+        error?.message?.includes("429") ||
+        error?.message?.includes("Quota exceeded") ||
+        error?.message?.includes("Too Many Requests") ||
+        error?.message?.includes("rate-limits");
+
+      if (
+        isQuotaOrRateLimit ||
+        error?.status === 404 ||
+        error?.message?.includes("404")
+      ) {
+        console.warn(
+          `${colors.yellow}[WARN] Model '${modelName}' unavailable (${error?.status || "quota/rate limit"}). Trying fallback model...${colors.reset}`,
+        );
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw lastError;
+}
+
   // 4. Run the Agent interactively (CLI mode)
   console.log(
     `${colors.cyan}\n[KP] Ready. Type your command (or 'exit' to quit):${colors.reset}`,
@@ -519,9 +576,12 @@ function isWriteOrSendAction(toolName: string): boolean {
 
       try {
         const result = await withRetry(async () => {
-          return await agent.invoke({
-            messages: [["human", input]],
-          });
+          return await invokeAgentWithModelFallback(
+            geminiKey as string,
+            geminiCompatibleTools,
+            systemPrompt,
+            [["human", input]],
+          );
         });
 
         spinner.stop();

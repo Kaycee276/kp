@@ -149,18 +149,69 @@ const MAX_HISTORY_LENGTH = 10;
 // State machine for onboarding input steps (Single-step KeeperHub setup)
 const userStates = new Map<string, "AWAITING_KEEPERHUB">();
 
-async function createAgentForUser(keeperhubKey: string) {
+const FALLBACK_MODELS = [
+  "gemini-3.5-flash",
+  "gemini-3.6-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-2.0-flash",
+];
+
+async function invokeAgentWithModelFallback(
+  geminiKey: string,
+  tools: any[],
+  systemPrompt: string,
+  inputMessages: any[],
+) {
+  let lastError: any;
+
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      const model = new ChatGoogleGenerativeAI({
+        model: modelName,
+        temperature: 0,
+        apiKey: geminiKey,
+      });
+
+      const agent = createAgent({
+        model,
+        tools: tools as any,
+        systemPrompt,
+      });
+
+      return await agent.invoke({ messages: inputMessages });
+    } catch (error: any) {
+      lastError = error;
+      const isQuotaOrRateLimit =
+        error?.status === 429 ||
+        error?.message?.includes("429") ||
+        error?.message?.includes("Quota exceeded") ||
+        error?.message?.includes("Too Many Requests") ||
+        error?.message?.includes("rate-limits");
+
+      if (
+        isQuotaOrRateLimit ||
+        error?.status === 404 ||
+        error?.message?.includes("404")
+      ) {
+        console.warn(
+          `[WARN] Model '${modelName}' unavailable (${error?.status || "quota/rate limit"}). Trying fallback model...`,
+        );
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw lastError;
+}
+
+async function runAgentForUser(keeperhubKey: string, history: any[]) {
   const rawGemini = process.env.GEMINI_API_KEY || "";
   const geminiKey = rawGemini.trim().replace(/^["']|["']$/g, "");
   if (!geminiKey) {
     throw new Error("Centralized GEMINI_API_KEY environment variable is missing on server!");
   }
-
-  const model = new ChatGoogleGenerativeAI({
-    model: "gemini-3.5-flash",
-    temperature: 0,
-    apiKey: geminiKey,
-  });
 
   const toolkit = new KeeperGateToolkit({ apiKey: keeperhubKey });
   const tools = await toolkit.getTools();
@@ -265,11 +316,12 @@ async function createAgentForUser(keeperhubKey: string) {
     systemPrompt += `\n\nThe user's KeeperHub Solana wallet address is ${solanaWalletAddress}. If they ask to check their Solana balance or perform a Solana action without specifying an address, use this address.`;
   }
 
-  return createAgent({
-    model,
-    tools: geminiCompatibleTools as any,
+  return await invokeAgentWithModelFallback(
+    geminiKey,
+    geminiCompatibleTools,
     systemPrompt,
-  });
+    history,
+  );
 }
 
 // Command: /start
@@ -449,10 +501,8 @@ bot.on("text", async (ctx) => {
       history.splice(0, history.length - MAX_HISTORY_LENGTH);
     }
 
-    const agent = await createAgentForUser(user.keeperhubKey);
-
     const result = await withRetry(async () => {
-      return await agent.invoke({ messages: history });
+      return await runAgentForUser(user.keeperhubKey, history);
     });
 
     const lastMessage = result.messages[result.messages.length - 1];
