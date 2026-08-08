@@ -249,16 +249,9 @@ async function invokeAgentWithModelFallback(
         error?.status === 404 || error?.message?.includes("404");
 
       if (isQuotaOrRateLimit || isNotFound) {
-        const prevModel = modelName;
         currentModelIndex = (currentModelIndex + 1) % models.length;
-        const nextModel = models[currentModelIndex];
-
-        console.warn(
-          `[WARN] Model '${prevModel}' rate-limited/unavailable. Switching to next available model '${nextModel}' (${attemptsCount}/${maxAttempts})...`,
-        );
 
         if (attemptsCount % models.length === 0) {
-          console.log(`[SYSTEM] Retried all ${models.length} available models. Pausing 5s for quota reset...`);
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
 

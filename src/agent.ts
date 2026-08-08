@@ -132,20 +132,12 @@ async function withRetry<T>(
       return await operation();
     } catch (error: any) {
       lastError = error;
-      console.warn(
-        `${colors.yellow}[WARN] Attempt ${i + 1}/${maxRetries} failed: ${error.message}${colors.reset}`,
-      );
       if (i < maxRetries - 1) {
-        console.log(
-          `${colors.dim}Retrying in ${delayMs / 1000} seconds...${colors.reset}`,
-        );
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       }
     }
   }
-  throw new Error(
-    `Operation failed after ${maxRetries} attempts. Last error: ${lastError.message}`,
-  );
+  throw lastError;
 }
 
 async function getKeeperHubUser(apiKey: string) {
@@ -598,18 +590,9 @@ async function invokeAgentWithModelFallback(
         error?.status === 404 || error?.message?.includes("404");
 
       if (isQuotaOrRateLimit || isNotFound) {
-        const prevModel = modelName;
         currentModelIndexCli = (currentModelIndexCli + 1) % models.length;
-        const nextModel = models[currentModelIndexCli];
-
-        console.warn(
-          `${colors.yellow}[WARN] Model '${prevModel}' rate-limited/unavailable. Switching to next available model '${nextModel}' (${attemptsCount}/${maxAttempts})...${colors.reset}`,
-        );
 
         if (attemptsCount % models.length === 0) {
-          console.log(
-            `${colors.dim}[SYSTEM] Retried all ${models.length} available models. Pausing 5s for quota reset...${colors.reset}`,
-          );
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
 
