@@ -502,7 +502,7 @@ bot.on("text", async (ctx) => {
     }
 
     const result = await withRetry(async () => {
-      return await runAgentForUser(user.keeperhubKey, history);
+      return await runAgentForUser(user.keeperhubKey!, history);
     });
 
     const lastMessage = result.messages[result.messages.length - 1];
