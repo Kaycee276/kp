@@ -1,28 +1,100 @@
 @import "tailwindcss";
 
-@theme {
-  --color-kp-bg: #121212;
-  --color-kp-accent: #0ab955;
-  --color-kp-accent-hover: #09a04a;
-  --color-kp-card: #181818;
-  --color-kp-border: #374151;
-  --color-kp-copy: #0ab955;
+@layer base {
+  :root {
+    --background: #0a0a0c;
+    --foreground: #f5f5f7;
+    --apple-card-bg: rgba(255, 255, 255, 0.03);
+    --apple-card-border: rgba(255, 255, 255, 0.08);
+    --apple-card-glow: rgba(10, 185, 85, 0.15);
+  }
 
-  --font-sans: var(--font-lato);
-  --font-mono: var(--font-jetbrains-mono);
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
 }
 
-:root {
-  --background: var(--color-kp-bg);
-  --foreground: #ffffff;
+/* Apple Design System Utilities */
+.apple-glass {
+  background: rgba(20, 20, 26, 0.65);
+  backdrop-filter: blur(25px) saturate(190%);
+  -webkit-backdrop-filter: blur(25px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.apple-glass-heavy {
+  background: rgba(12, 12, 16, 0.85);
+  backdrop-filter: blur(35px) saturate(200%);
+  -webkit-backdrop-filter: blur(35px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-button {
-  cursor: pointer;
+.apple-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-glass-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(10, 185, 85, 0.3);
+  border-top-color: rgba(10, 185, 85, 0.5);
+  box-shadow: 0 20px 40px -15px rgba(10, 185, 85, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Active feedback on press - direct response */
+.apple-button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-button:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(10, 185, 85, 0.5);
+}
+
+/* Glow animation */
+@keyframes appleGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.animate-apple-glow {
+  animation: appleGlow 8s ease-in-out infinite;
 }

@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { Lato, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const lato = Lato({
-  variable: "--font-lato",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "700", "900"],
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "KP Agent",
-  description: "The zero-to-one starter template for building AI agents.",
+  title: "KP — Onchain AI Agent Platform",
+  description: "The fluid, zero-to-one platform for AI agents executing onchain transactions via KeeperHub and Gemini.",
 };
 
 export default function RootLayout({
@@ -26,9 +27,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${lato.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans bg-[#0a0a0c] text-[#f5f5f7] selection:bg-[#0ab955]/30 selection:text-emerald-300">
+        {children}
+      </body>
     </html>
   );
 }
