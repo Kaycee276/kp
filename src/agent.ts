@@ -350,13 +350,19 @@ async function main() {
   });
 
   const userProfile = await getKeeperHubUser(keeperhubKey as string);
-  const walletAddress = userProfile?.walletAddress;
+  const evmWalletAddress = userProfile?.walletAddress;
+  const solanaWalletAddress = userProfile?.solanaWalletAddress;
 
-  const systemPrompt =
-    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction." +
-    (walletAddress
-      ? `\n\nThe user's KeeperHub wallet address is ${walletAddress}. If they ask to check their balance or perform an action without specifying an address, use this address.`
-      : "");
+  let systemPrompt =
+    "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.";
+
+  if (evmWalletAddress) {
+    systemPrompt += `\n\nThe user's KeeperHub EVM wallet address is ${evmWalletAddress}. If they ask to check their EVM balance or perform an EVM action without specifying an address, use this address.`;
+  }
+
+  if (solanaWalletAddress) {
+    systemPrompt += `\n\nThe user's KeeperHub Solana wallet address is ${solanaWalletAddress}. If they ask to check their Solana balance or perform a Solana action without specifying an address, use this address.`;
+  }
 
   // 3. Create the Agent using LangGraph
   const agent = createAgent({
