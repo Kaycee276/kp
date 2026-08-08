@@ -104,9 +104,9 @@ async function validateGeminiKey(apiKey: string): Promise<boolean> {
   }
 }
 
-// Strip markdown symbols for clean plain text Telegram output
-function stripMarkdown(text: string): string {
-  return text
+// Formats Telegram response text, stripping general markdown syntax while wrapping wallet addresses in backticks for tap-to-copy
+function formatTelegramText(text: string): string {
+  let clean = text
     .replace(/\*\*(.*?)\*\*/g, "$1")
     .replace(/\*(.*?)\*/g, "$1")
     .replace(/__(.*?)__/g, "$1")
@@ -114,10 +114,25 @@ function stripMarkdown(text: string): string {
     .replace(/```[\s\S]*?```/g, (block) => {
       return block.replace(/```\w*\n?/g, "").trim();
     })
-    .replace(/`([^`]+)`/g, "$1")
     .replace(/^#+\s+/gm, "")
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
     .trim();
+
+  // Wrap EVM addresses (0x...) in backticks so tapping them on Telegram copies to clipboard
+  clean = clean.replace(/(?<!`)(0x[a-fA-F0-9]{40})(?!`)/g, "`$1`");
+
+  // Wrap Solana base58 wallet addresses in backticks so tapping them on Telegram copies to clipboard
+  clean = clean.replace(/(?<!`)\b([1-9A-HJ-NP-Za-km-z]{32,44})\b(?!`)/g, (match) => {
+    if (/^(http|https|KeeperHub|Ethereum|Arbitrum|Optimism|Polygon|Sepolia|Solana|Telegram)/i.test(match)) {
+      return match;
+    }
+    if (/[a-z]/.test(match) && /[A-Z]/.test(match) && match.length >= 32) {
+      return "`" + match + "`";
+    }
+    return match;
+  });
+
+  return clean;
 }
 
 // Mask API key for profile view
@@ -315,18 +330,22 @@ const handleProfile = async (ctx: any) => {
   const statusMsg = await ctx.reply("⏳ Fetching wallet profile...");
   const keeperProfile = await getKeeperHubUser(user.keeperhubKey);
 
+  const evmAddr = keeperProfile?.walletAddress;
+  const solAddr = keeperProfile?.solanaWalletAddress;
+
   const msg =
     "👤 KP User Profile\n\n" +
-    `• KeeperHub Key: ${maskKey(user.keeperhubKey)}\n\n` +
-    "💳 Connected KeeperHub Wallets:\n" +
-    `• EVM Address: ${keeperProfile?.walletAddress || "Not connected / Invalid key"}\n` +
-    `• Solana Address: ${keeperProfile?.solanaWalletAddress || "Not connected / Invalid key"}`;
+    `• KeeperHub Key: \`${maskKey(user.keeperhubKey)}\`\n\n` +
+    "💳 Connected KeeperHub Wallets (Tap address to copy):\n" +
+    `• EVM Address: ${evmAddr ? `\`${evmAddr}\`` : "Not connected / Invalid key"}\n` +
+    `• Solana Address: ${solAddr ? `\`${solAddr}\`` : "Not connected / Invalid key"}`;
 
   await ctx.telegram.editMessageText(
     chatId,
     statusMsg.message_id,
     undefined,
     msg,
+    { parse_mode: "Markdown" },
   );
 };
 
@@ -439,7 +458,7 @@ bot.on("text", async (ctx) => {
       history.push(["ai", outputText]);
       chatHistories.set(chatId, history);
 
-      const cleanText = stripMarkdown(outputText);
+      const cleanText = formatTelegramText(outputText);
       const formatted = `✅ ${cleanText}`;
 
       if (formatted.length <= 4000) {
@@ -448,6 +467,7 @@ bot.on("text", async (ctx) => {
           msg.message_id,
           undefined,
           formatted,
+          { parse_mode: "Markdown" },
         );
       } else {
         // Split long responses across Telegram messages
@@ -456,9 +476,10 @@ bot.on("text", async (ctx) => {
           msg.message_id,
           undefined,
           formatted.substring(0, 3900) + "\n\n(continued below...)",
+          { parse_mode: "Markdown" },
         );
         for (let i = 3900; i < formatted.length; i += 3900) {
-          await ctx.reply(formatted.substring(i, i + 3900));
+          await ctx.reply(formatted.substring(i, i + 3900), { parse_mode: "Markdown" });
         }
       }
     } else {
