@@ -185,7 +185,8 @@ async function main() {
       `${colors.dim}Initializing device authorization flow...${colors.reset}`,
     );
 
-    const FRONTEND_URL = "https://kp-three-mu.vercel.app";
+    const FRONTEND_URL =
+      process.env.FRONTEND_URL || "https://kp-three-mu.vercel.app";
 
     try {
       const initRes = await fetch(`${FRONTEND_URL}/api/auth/device/init`, {
