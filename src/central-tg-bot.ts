@@ -35,9 +35,72 @@ dotenv.config();
 dotenv.config({ path: "./web/.env" });
 
 const { Pool } = pg;
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const dbUrl = process.env.DATABASE_URL || "";
+const pool = new Pool({
+  connectionString: dbUrl,
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000,
+  max: 10,
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+// In-memory cache & fallback for database queries to prevent timeout crashes
+const userCache = new Map<string, any>();
+
+async function dbRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastErr: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastErr = err;
+      if (i < maxRetries - 1) {
+        await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+      }
+    }
+  }
+  throw lastErr;
+}
+
+async function getOrCreateTelegramUser(chatId: string) {
+  if (userCache.has(chatId)) {
+    return userCache.get(chatId);
+  }
+  try {
+    const user = await dbRetry(async () => {
+      let u = await prisma.telegramUser.findUnique({ where: { chatId } });
+      if (!u) {
+        u = await prisma.telegramUser.create({ data: { chatId } });
+      }
+      return u;
+    });
+    userCache.set(chatId, user);
+    return user;
+  } catch (err) {
+    const fallbackUser = { id: chatId, chatId, keeperhubKey: null };
+    userCache.set(chatId, fallbackUser);
+    return fallbackUser;
+  }
+}
+
+async function updateTelegramUserKey(chatId: string, keeperhubKey: string) {
+  try {
+    const updated = await dbRetry(async () => {
+      return await prisma.telegramUser.update({
+        where: { chatId },
+        data: { keeperhubKey },
+      });
+    });
+    userCache.set(chatId, updated);
+    return updated;
+  } catch (err) {
+    const cached = userCache.get(chatId) || { id: chatId, chatId };
+    cached.keeperhubKey = keeperhubKey;
+    userCache.set(chatId, cached);
+    return cached;
+  }
+}
 
 const rawToken = process.env.TELEGRAM_BOT_TOKEN || "";
 const botToken = rawToken.trim().replace(/^["']|["']$/g, "");
@@ -421,11 +484,7 @@ async function runAgentForUser(keeperhubKey: string, history: any[]) {
 // Command: /start
 bot.start(async (ctx) => {
   const chatId = ctx.chat.id.toString();
-  let user = await prisma.telegramUser.findUnique({ where: { chatId } });
-
-  if (!user) {
-    user = await prisma.telegramUser.create({ data: { chatId } });
-  }
+  const user = await getOrCreateTelegramUser(chatId);
 
   if (user.keeperhubKey) {
     return ctx.reply(
@@ -468,7 +527,7 @@ bot.command("help", (ctx) => {
 // Command: /profile or /status
 const handleProfile = async (ctx: any) => {
   const chatId = ctx.chat.id.toString();
-  const user = await prisma.telegramUser.findUnique({ where: { chatId } });
+  const user = await getOrCreateTelegramUser(chatId);
 
   if (!user || !user.keeperhubKey) {
     return ctx.reply(
@@ -535,11 +594,7 @@ bot.on("text", async (ctx) => {
   if (text.startsWith("/")) return; // Skip unmatched commands
 
   const chatId = ctx.chat.id.toString();
-
-  let user = await prisma.telegramUser.findUnique({ where: { chatId } });
-  if (!user) {
-    user = await prisma.telegramUser.create({ data: { chatId } });
-  }
+  const user = await getOrCreateTelegramUser(chatId);
 
   const activeState =
     userStates.get(chatId) || (!user.keeperhubKey ? "AWAITING_KEEPERHUB" : null);
@@ -559,10 +614,7 @@ bot.on("text", async (ctx) => {
       return;
     }
 
-    await prisma.telegramUser.update({
-      where: { chatId },
-      data: { keeperhubKey: text },
-    });
+    await updateTelegramUserKey(chatId, text);
     userStates.delete(chatId);
 
     await ctx.telegram.editMessageText(
