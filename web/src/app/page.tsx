@@ -35,7 +35,7 @@ function AppleHeader({
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
             <span className="font-bold text-sm text-white tracking-tight leading-none">
-              KP Onchain AI Agent
+              KP
             </span>
           </div>
         </div>
@@ -277,12 +277,6 @@ export default async function Home() {
               Manage API key vault, CLI pairings, and Telegram bot
               authentication.
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Connected to Agent Core
-            </span>
           </div>
         </div>
 

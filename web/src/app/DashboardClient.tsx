@@ -1,15 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Key,
-  CheckCircle2,
-  ShieldCheck,
-  Cpu,
-  Eye,
-  EyeOff,
-  Bot,
-} from "lucide-react";
+import { Key, CheckCircle2, Cpu, Eye, EyeOff, Bot } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardClient({
@@ -73,10 +65,6 @@ export default function DashboardClient({
                 Telegram bot execution.
               </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Encrypted Vault</span>
           </div>
         </div>
 
