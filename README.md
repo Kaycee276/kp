@@ -28,8 +28,6 @@ Built for **The Last Mile — KeeperHub Agent Hackathon**, KP solves the executi
 ### 📱 1. Centralized Telegram AI Bot (`@keipee_bot`)
 - **1-Step Single-Key Onboarding**: Users only need to reply with their KeeperHub API key. The bot automatically manages LLM API keys server-side, keeping developer credentials 100% private.
 - **Tap-to-Copy Wallet Address Pills**: All EVM (`0x...`) and Solana wallet addresses are rendered in monospaced code blocks. Tapping an address on mobile or desktop instantly copies it to the clipboard.
-- **1-Tap Browser Links**: Explorer URLs, Markdown links, and 66-character transaction hashes are formatted as hyperlinked buttons that open in your browser with a single tap.
-- **🔔 Real-Time Incoming Token Transfer Push Notifications**: Includes a background monitoring engine that periodically checks user wallets across EVM and Solana networks. When incoming tokens land, the bot pushes an instant Telegram alert showing amount, token symbol, network, and wallet address.
 - **Resilient Database Fallback**: Implements PostgreSQL connection pooling with `dbRetry` and in-memory user caching, guaranteeing 100% uptime even if database queries drop.
 
 ### ⚡ 2. Dynamic Gemini Fallback & Infinite Wraparound Engine
