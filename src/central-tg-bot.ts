@@ -720,7 +720,7 @@ bot.catch((err: any, ctx: any) => {
   console.error(`Telegram Bot Error during ${ctx.updateType}:`, err);
 });
 
-async function launchWithRetry(maxAttempts: number = 5, delayMs: number = 3000) {
+async function launchWithRetry(maxAttempts: number = 30, delayMs: number = 4000) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const me = await bot.telegram.getMe();
@@ -748,7 +748,7 @@ async function launchWithRetry(maxAttempts: number = 5, delayMs: number = 3000) 
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       } else {
         console.error(
-          "❌ Could not connect to Telegram API after multiple retries. Please check your network or proxy settings.",
+          "❌ Could not connect to Telegram API after multiple retries.",
         );
       }
     }
