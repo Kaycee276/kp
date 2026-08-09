@@ -192,7 +192,7 @@ async function validateGeminiKey(apiKey: string): Promise<boolean> {
   }
 }
 
-// Formats Telegram response text, stripping general markdown syntax while wrapping wallet addresses in backticks for tap-to-copy
+// Formats Telegram response text, preserving links for 1-tap browser opening while wrapping wallet addresses in backticks for tap-to-copy
 function formatTelegramText(text: string): string {
   let clean = text
     .replace(/\*\*(.*?)\*\*/g, "$1")
@@ -203,14 +203,19 @@ function formatTelegramText(text: string): string {
       return block.replace(/```\w*\n?/g, "").trim();
     })
     .replace(/^#+\s+/gm, "")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
     .trim();
 
-  // Wrap EVM addresses (0x...) in backticks so tapping them on Telegram copies to clipboard
-  clean = clean.replace(/(?<!`)(0x[a-fA-F0-9]{40})(?!`)/g, "`$1`");
+  // Convert standalone 66-char EVM transaction hashes (0x + 64 hex) to 1-tap Etherscan browser links if not already linked
+  clean = clean.replace(
+    /(?<!\(|\/|`)(0x[a-fA-F0-9]{64})(?!`|\))/g,
+    "[View Transaction on Explorer](https://sepolia.etherscan.io/tx/$1)",
+  );
 
-  // Wrap Solana base58 wallet addresses in backticks so tapping them on Telegram copies to clipboard
-  clean = clean.replace(/(?<!`)\b([1-9A-HJ-NP-Za-km-z]{32,44})\b(?!`)/g, (match) => {
+  // Wrap 42-char EVM wallet addresses (0x + 40 hex) in backticks so tapping them copies to clipboard
+  clean = clean.replace(/(?<!`|\/)(0x[a-fA-F0-9]{40})(?!`|\/)/g, "`$1`");
+
+  // Wrap Solana base58 wallet addresses in backticks for tap-to-copy
+  clean = clean.replace(/(?<!`|\/)\b([1-9A-HJ-NP-Za-km-z]{32,44})\b(?!`|\/)/g, (match) => {
     if (/^(http|https|KeeperHub|Ethereum|Arbitrum|Optimism|Polygon|Sepolia|Solana|Telegram)/i.test(match)) {
       return match;
     }
