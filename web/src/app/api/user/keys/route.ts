@@ -11,12 +11,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { geminiKey, keeperhubKey } = await req.json();
+    const { keeperhubKey } = await req.json();
 
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        geminiKey,
         keeperhubKey,
       },
     });

@@ -293,7 +293,6 @@ export default async function Home() {
               }
             >
               <DashboardClient
-                initialGeminiKey={user?.geminiKey || ""}
                 initialKeeperhubKey={user?.keeperhubKey || ""}
               />
             </Suspense>
@@ -306,7 +305,7 @@ export default async function Home() {
               Quick Instructions
             </h3>
             <ol className="space-y-3 text-xs text-white/60 list-decimal list-inside leading-relaxed">
-              <li>Save your Gemini &amp; KeeperHub keys in the vault.</li>
+              <li>Save your KeeperHub key in the vault.</li>
               <li>Open your terminal on desktop.</li>
               <li>
                 Run{" "}

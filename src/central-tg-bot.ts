@@ -601,10 +601,20 @@ bot.on("text", async (ctx) => {
   const chatId = ctx.chat.id.toString();
   const user = await getOrCreateTelegramUser(chatId);
 
-  const activeState =
-    userStates.get(chatId) || (!user.keeperhubKey ? "AWAITING_KEEPERHUB" : null);
+  const isAwaitingKey = userStates.get(chatId) === "AWAITING_KEEPERHUB";
 
-  if (activeState === "AWAITING_KEEPERHUB") {
+  if (!user.keeperhubKey && !isAwaitingKey) {
+    userStates.set(chatId, "AWAITING_KEEPERHUB");
+    return ctx.reply(
+      "⚠️ KeeperHub API Key required.\n\n" +
+        "You need a connected KeeperHub API Key to run onchain actions.\n" +
+        "Please reply with your KeeperHub API Key to complete setup.\n" +
+        "(Get your API key at https://app.keeperhub.com -> Settings -> API Keys)\n\n" +
+        "Send /cancel anytime to abort.",
+    );
+  }
+
+  if (isAwaitingKey) {
     const valMsg = await ctx.reply("⏳ Validating KeeperHub API Key...");
     const profile = await getKeeperHubUser(text);
 

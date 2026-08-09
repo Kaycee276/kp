@@ -5,15 +5,11 @@ import { Key, CheckCircle2, Cpu, Eye, EyeOff, Bot } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardClient({
-  initialGeminiKey,
   initialKeeperhubKey,
 }: {
-  initialGeminiKey: string;
   initialKeeperhubKey: string;
 }) {
-  const [geminiKey, setGeminiKey] = useState(initialGeminiKey);
   const [keeperhubKey, setKeeperhubKey] = useState(initialKeeperhubKey);
-  const [showGemini, setShowGemini] = useState(false);
   const [showKeeper, setShowKeeper] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -28,7 +24,7 @@ export default function DashboardClient({
       const res = await fetch("/api/user/keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ geminiKey, keeperhubKey }),
+        body: JSON.stringify({ keeperhubKey }),
       });
       if (res.ok) {
         setSaved(true);
@@ -61,7 +57,7 @@ export default function DashboardClient({
                 API Vault
               </h2>
               <p className="text-xs text-white/50">
-                Securely store your keys to power CLI device pairing and
+                Securely store your KeeperHub key to power CLI device pairing and
                 Telegram bot execution.
               </p>
             </div>
@@ -69,45 +65,6 @@ export default function DashboardClient({
         </div>
 
         <div className="space-y-6">
-          {/* Gemini Key Input */}
-          <div className="space-y-2">
-            <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider">
-              Gemini API Key
-            </label>
-            <div className="relative">
-              <input
-                type={showGemini ? "text" : "password"}
-                value={geminiKey}
-                onChange={(e) => setGeminiKey(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#0ab955] focus:ring-2 focus:ring-[#0ab955]/20 transition-all font-mono placeholder:text-white/20"
-                placeholder="AIzaSy..."
-              />
-              <button
-                type="button"
-                onClick={() => setShowGemini(!showGemini)}
-                className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors"
-              >
-                {showGemini ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-white/40">
-              Powers agent reasoning. Free from{" "}
-              <a
-                href="https://aistudio.google.com/app/apikey"
-                target="_blank"
-                rel="noreferrer"
-                className="text-emerald-400 hover:underline"
-              >
-                Google AI Studio
-              </a>
-              .
-            </p>
-          </div>
-
           {/* KeeperHub Key Input */}
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider">
@@ -165,7 +122,7 @@ export default function DashboardClient({
                 </>
               ) : (
                 <>
-                  <span>{isSaving ? "Saving..." : "Save Vault Keys"}</span>
+                  <span>{isSaving ? "Saving..." : "Save Key"}</span>
                 </>
               )}
             </button>

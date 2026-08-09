@@ -64,11 +64,11 @@ export default function LinkClient({
         <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-left space-y-2 w-full">
           <div className="flex items-center gap-2 text-red-400 font-bold text-xs uppercase tracking-wider">
             <AlertTriangle className="w-4 h-4" />
-            <span>Missing API Vault Keys</span>
+            <span>Missing KeeperHub API Key</span>
           </div>
           <p className="text-xs text-white/70 leading-relaxed">
-            You must configure your Gemini and KeeperHub API keys in your
-            dashboard before authorizing a CLI device.
+            You must configure your KeeperHub API key in your dashboard before
+            authorizing a CLI device.
           </p>
         </div>
 

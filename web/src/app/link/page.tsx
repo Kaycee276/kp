@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import LinkClient from "./LinkClient";
-import { Terminal, Shield, Bot } from "lucide-react";
+import { Terminal } from "lucide-react";
 
 export default async function LinkPage({
   searchParams,
@@ -18,7 +18,9 @@ export default async function LinkPage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c] text-white">
         <div className="apple-glass-card rounded-2xl p-8 border border-white/10 text-center max-w-sm">
-          <p className="text-sm font-semibold text-red-400">Invalid or missing device code.</p>
+          <p className="text-sm font-semibold text-red-400">
+            Invalid or missing device code.
+          </p>
         </div>
       </div>
     );
@@ -32,7 +34,7 @@ export default async function LinkPage({
     where: { id: session.user.id },
   });
 
-  const hasKeys = !!(user?.geminiKey && user?.keeperhubKey);
+  const hasKeys = !!user?.keeperhubKey;
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col items-center justify-center p-6 relative overflow-hidden selection:bg-[#0ab955]/30">
@@ -50,7 +52,8 @@ export default async function LinkPage({
             Authorize Terminal Device
           </h1>
           <p className="text-xs text-white/50 mt-1">
-            The KP CLI agent is requesting permission to pair with your API keys.
+            The KP CLI agent is requesting permission to pair with your API
+            keys.
           </p>
         </div>
 
