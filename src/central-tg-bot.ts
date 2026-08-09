@@ -114,6 +114,7 @@ if (!botToken) {
 // Force IPv4 HTTPS Agent to prevent Node 18+ IPv6 DNS timeout issues
 const ipv4Agent = new https.Agent({ family: 4, keepAlive: true });
 const bot = new Telegraf(botToken, {
+  handlerTimeout: 300000, // 5 minutes handler timeout for AI agent execution
   telegram: {
     agent: ipv4Agent,
   },
