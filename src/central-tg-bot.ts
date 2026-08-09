@@ -755,14 +755,28 @@ async function launchWithRetry(maxAttempts: number = 5, delayMs: number = 3000) 
   }
 }
 
-// Start a lightweight HTTP server for Render / Cloud health check port binding
+// Start a lightweight HTTP server for Render / Cloud health check port binding & UptimeRobot monitoring
 const port = process.env.PORT || 8080;
-const server = nodeHttp.createServer((_req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("KP Telegram Bot is active and running!\n");
+const server = nodeHttp.createServer((req, res) => {
+  const method = req.method?.toUpperCase();
+  const bodyText = "KP Telegram Bot is active and running!\n";
+
+  if (method === "HEAD") {
+    res.writeHead(200, {
+      "Content-Type": "text/plain",
+      "Content-Length": Buffer.byteLength(bodyText),
+    });
+    return res.end();
+  }
+
+  res.writeHead(200, {
+    "Content-Type": "text/plain",
+    "Content-Length": Buffer.byteLength(bodyText),
+  });
+  res.end(bodyText);
 });
 server.listen(port, () => {
-  console.log(`🌐 Health check HTTP server listening on port ${port}`);
+  console.log(`🌐 Health check HTTP server (GET/HEAD) listening on port ${port}`);
 });
 
 launchWithRetry();
