@@ -1,5 +1,6 @@
 import dns from "dns";
 import https from "https";
+import nodeHttp from "http";
 dns.setDefaultResultOrder("ipv4first");
 
 import { Telegraf } from "telegraf";
@@ -754,7 +755,23 @@ async function launchWithRetry(maxAttempts: number = 5, delayMs: number = 3000) 
   }
 }
 
+// Start a lightweight HTTP server for Render / Cloud health check port binding
+const port = process.env.PORT || 8080;
+const server = nodeHttp.createServer((_req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("KP Telegram Bot is active and running!\n");
+});
+server.listen(port, () => {
+  console.log(`🌐 Health check HTTP server listening on port ${port}`);
+});
+
 launchWithRetry();
 
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.once("SIGINT", () => {
+  server.close();
+  bot.stop("SIGINT");
+});
+process.once("SIGTERM", () => {
+  server.close();
+  bot.stop("SIGTERM");
+});
