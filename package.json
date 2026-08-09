@@ -21,7 +21,8 @@
     "kp": "./dist/agent.cjs"
   },
   "scripts": {
-    "build": "esbuild src/agent.ts --bundle --platform=node --target=node18 --outfile=dist/agent.cjs --format=cjs",
+    "postinstall": "prisma generate --schema=web/prisma/schema.prisma",
+    "build": "prisma generate --schema=web/prisma/schema.prisma && esbuild src/agent.ts --bundle --platform=node --target=node18 --outfile=dist/agent.cjs --format=cjs",
     "start": "tsx src/agent.ts",
     "tg-bot": "tsx src/central-tg-bot.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
