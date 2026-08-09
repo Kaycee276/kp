@@ -235,6 +235,103 @@ function maskKey(key: string | null | undefined): string {
   return `${key.substring(0, 4)}••••${key.substring(key.length - 4)}`;
 }
 
+// Incoming Token Transfer Monitor for Telegram Users
+const lastKnownEvmBalances = new Map<string, Record<string, bigint>>();
+const lastKnownSolBalances = new Map<string, Record<string, number>>();
+
+function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
+  setInterval(async () => {
+    try {
+      const users = await dbRetry(async () => {
+        return await prisma.telegramUser.findMany({
+          where: { keeperhubKey: { not: null } },
+        });
+      });
+
+      for (const u of users) {
+        if (!u.keeperhubKey) continue;
+        const chatId = u.chatId;
+
+        const profile = await getKeeperHubUser(u.keeperhubKey);
+        if (!profile) continue;
+
+        const evmAddr = profile.walletAddress;
+        const solAddr = profile.solanaWalletAddress;
+
+        if (evmAddr) {
+          const monitorNetworks: { name: string; chain: any; symbol: string }[] = [
+            { name: "Sepolia Testnet", chain: sepolia, symbol: "ETH" },
+            { name: "Base Mainnet", chain: base, symbol: "ETH" },
+            { name: "Ethereum Mainnet", chain: mainnet, symbol: "ETH" },
+            { name: "Arbitrum One", chain: arbitrum, symbol: "ETH" },
+            { name: "Optimism", chain: optimism, symbol: "ETH" },
+            { name: "Polygon PoS", chain: polygon, symbol: "POL" },
+          ];
+
+          let userEvmMap = lastKnownEvmBalances.get(chatId);
+          if (!userEvmMap) {
+            userEvmMap = {};
+            lastKnownEvmBalances.set(chatId, userEvmMap);
+          }
+
+          for (const net of monitorNetworks) {
+            try {
+              const client = createPublicClient({ chain: net.chain, transport: http() });
+              const currentBalance = await client.getBalance({ address: evmAddr as `0x${string}` });
+
+              const prevBalance = userEvmMap[net.name];
+              if (prevBalance !== undefined && currentBalance > prevBalance) {
+                const diff = currentBalance - prevBalance;
+                const formattedDiff = formatEther(diff);
+
+                const msg =
+                  "🔔 *Incoming Token Received!* 🚀\n\n" +
+                  `💰 *Amount:* \`+${formattedDiff} ${net.symbol}\`\n` +
+                  `🌐 *Network:* ${net.name}\n` +
+                  `💳 *Wallet:* \`${evmAddr}\`\n\n` +
+                  "✨ Your KeeperHub wallet balance has been updated.";
+
+                await botInstance.telegram.sendMessage(chatId, msg, { parse_mode: "Markdown" }).catch(() => {});
+              }
+
+              userEvmMap[net.name] = currentBalance;
+            } catch (err) {}
+          }
+        }
+
+        if (solAddr) {
+          try {
+            const connection = new Connection("https://api.mainnet-beta.solana.com");
+            const pubKey = new PublicKey(solAddr);
+            const currentSolBalance = (await connection.getBalance(pubKey)) / LAMPORTS_PER_SOL;
+
+            let userSolMap = lastKnownSolBalances.get(chatId);
+            if (!userSolMap) {
+              userSolMap = {};
+              lastKnownSolBalances.set(chatId, userSolMap);
+            }
+
+            const prevSol = userSolMap["solana-mainnet"];
+            if (prevSol !== undefined && currentSolBalance > prevSol) {
+              const diffSol = (currentSolBalance - prevSol).toFixed(4);
+              const msg =
+                "🔔 *Incoming SOL Received!* 🚀\n\n" +
+                `💰 *Amount:* \`+${diffSol} SOL\`\n` +
+                `🌐 *Network:* Solana Mainnet-Beta\n` +
+                `💳 *Wallet:* \`${solAddr}\`\n\n` +
+                "✨ Your Solana wallet balance has been updated.";
+
+              await botInstance.telegram.sendMessage(chatId, msg, { parse_mode: "Markdown" }).catch(() => {});
+            }
+
+            userSolMap["solana-mainnet"] = currentSolBalance;
+          } catch (err) {}
+        }
+      }
+    } catch (err) {}
+  }, 20000);
+}
+
 // In-memory conversation history per chat ID
 const chatHistories = new Map<string, Array<[string, string]>>();
 const MAX_HISTORY_LENGTH = 10;
@@ -727,6 +824,7 @@ async function launchWithRetry(maxAttempts: number = 5, delayMs: number = 3000) 
         .catch((err) => console.warn("Failed to set bot commands:", err.message));
 
       await bot.launch();
+      startIncomingTransferMonitor(bot);
       return;
     } catch (err: any) {
       console.warn(
