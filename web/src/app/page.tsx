@@ -7,7 +7,7 @@ import DashboardClient from "./DashboardClient";
 import CopyButton from "./CopyButton";
 import TerminalPlayground from "./TerminalPlayground";
 import { Suspense } from "react";
-import { Zap, Bot } from "lucide-react";
+import { Zap, Bot, ExternalLink } from "lucide-react";
 
 async function getGithubStars() {
   try {
@@ -280,6 +280,16 @@ export default async function Home() {
               authentication.
             </p>
           </div>
+          <a
+            href="https://stats.uptimerobot.com/SjyoYOBuNi/803699400"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/20 transition-all w-fit shadow-inner"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>System Operational</span>
+            <ExternalLink className="w-3 h-3 opacity-70" />
+          </a>
         </div>
 
         {/* Dashboard Components */}

@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Key, CheckCircle2, Cpu, Eye, EyeOff, Bot } from "lucide-react";
+import {
+  Key,
+  CheckCircle2,
+  Cpu,
+  Eye,
+  EyeOff,
+  Bot,
+  Activity,
+  ExternalLink,
+} from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardClient({
@@ -57,8 +66,8 @@ export default function DashboardClient({
                 API Vault
               </h2>
               <p className="text-xs text-white/50">
-                Securely store your KeeperHub key to power CLI device pairing and
-                Telegram bot execution.
+                Securely store your KeeperHub key to power CLI device pairing
+                and Telegram bot execution.
               </p>
             </div>
           </div>
@@ -130,8 +139,8 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* Connected Interfaces Info Card */}
-      <div className="grid md:grid-cols-2 gap-6">
+      {/* Connected Interfaces & Status Info Cards */}
+      <div className="grid md:grid-cols-3 gap-6">
         <div className="apple-glass-card rounded-2xl p-6 border border-white/10 space-y-3">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
@@ -169,6 +178,34 @@ export default function DashboardClient({
               @keipee_bot
             </a>{" "}
             on Telegram to run onchain queries on mobile anytime.
+          </p>
+        </div>
+
+        <div className="apple-glass-card rounded-2xl p-6 border border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                <Activity className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">System Health</h3>
+            </div>
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+          </div>
+          <p className="text-xs text-white/60 leading-relaxed">
+            Live bot server uptime monitoring. Check status on{" "}
+            <a
+              href="https://stats.uptimerobot.com/SjyoYOBuNi/803699400"
+              target="_blank"
+              rel="noreferrer"
+              className="text-emerald-400 hover:underline font-medium inline-flex items-center gap-1"
+            >
+              <span>UptimeRobot</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            .
           </p>
         </div>
       </div>
