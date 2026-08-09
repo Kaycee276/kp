@@ -1,132 +1,130 @@
-# KP: Zero-to-One KeeperHub Agent Template 🚀
+# KP: Zero-to-One KeeperHub Onchain AI Agent Platform 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-15.0-black?logo=next.js)](https://nextjs.org/)
-[![KeeperHub](https://img.shields.io/badge/KeeperHub-Ready-0AB955)](https://keeperhub.com)
-[![Gemini](https://img.shields.io/badge/Gemini-Powered-blue?logo=google)](https://ai.google.dev/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-black?logo=next.js)](https://nextjs.org/)
+[![KeeperHub](https://img.shields.io/badge/KeeperHub-Execution_Layer-0AB955)](https://keeperhub.com)
+[![Gemini](https://img.shields.io/badge/Gemini-Fallback_Engine-blue?logo=google)](https://ai.google.dev/)
+[![Telegram Bot](https://img.shields.io/badge/Telegram_Bot-@keipee__bot-26A5E4?logo=telegram)](https://t.me/keipee_bot)
 
-A zero-to-one starter template for building AI agents that execute onchain transactions using [KeeperHub](https://keeperhub.com) and [LangChain](https://js.langchain.com/).
+**KP** is a production-grade, zero-to-one starter platform and template for building AI agents that execute real onchain transactions using [KeeperHub](https://keeperhub.com) and [LangChain](https://js.langchain.com/).
 
-This template is specifically designed for the **KeeperHub Hackathon** to target the "Best Onboarding UX Improvement" bounty. It gets developers from zero to their first onchain transaction as fast as possible, with a **production-grade CLI and Web Dashboard experience**, and **completely for free** by integrating Google's Gemini API.
+Built for **The Last Mile — KeeperHub Agent Hackathon**, KP solves the execution reliability problem and targets the **Best Onboarding UX Improvement** bounty ($1,000) by taking developers from zero to their first onchain transaction faster and smoother than ever before.
 
-## 🌟 Why this template?
+---
 
-Many agent frameworks struggle with the "last mile" of execution—actually submitting transactions onchain reliably. KeeperHub solves this, but setting up the connection, managing API keys securely, and paying for LLM API keys (like OpenAI) can be a hurdle for new developers.
+## 🏆 Hackathon Submission Checklist
 
-This template solves three major onboarding problems:
+| Requirement | Status | Details |
+|---|---|---|
+| **KeeperHub Execution Layer** | ✅ Verified | Executes real transfers and contract interactions on 13+ EVM chains & Solana. |
+| **Source Code Repository** | ✅ Public | GitHub Monorepo (`https://github.com/Kaycee276/kp`) |
+| **Onchain Transaction Proof** | ✅ Verified | [0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3) |
+| **Multi-Surface Access** | ✅ CLI + Web + TG | Terminal CLI, Web Dashboard, and Centralized Telegram Bot ([@keipee_bot](https://t.me/keipee_bot)). |
 
-1. **Seamless UX (The Web Dashboard):** Instead of manually creating and editing `.env` files, users authenticate via a beautiful Next.js web dashboard using GitHub OAuth. The CLI uses a secure device authorization flow (similar to the GitHub CLI) to fetch the keys.
-2. **Easy Integration:** It uses the official `@keepergate/langchain` adapter to seamlessly bridge LangChain's tool system with KeeperHub's execution layer.
-3. **Free Execution (The Gemini Schema Wrapper):** KeeperHub's complex tool schemas (which use `.nullish()` and `$ref`) are natively built for OpenAI. If you try to pass them to Gemini, the API throws a `400 Bad Request` due to strict schema validation. **This template includes a custom schema wrapper** that simplifies the payloads on the fly, allowing you to use Gemini's free tier to power your onchain agents!
+---
 
-## 🏗️ Architecture
+## 🌟 Key Features & Innovations
 
-The project consists of two main components:
+### 1. 📱 Centralized Telegram AI Bot (`@keipee_bot`)
+* **1-Step Single Key Onboarding**: Telegram users only provide their KeeperHub API key. Server automatically injects the centralized Gemini key, keeping server credentials 100% private.
+* **Tap-to-Copy Wallet Address Pills**: Wallet addresses in responses are automatically formatted as monospaced inline code pills. Tapping an address on mobile or desktop instantly copies it to clipboard!
+* **Clean Plain Text Formatting**: Telegram responses are cleaned of markdown noise, keeping responses concise and readable.
 
-1. **The Web Dashboard (`/web`):** A Next.js App Router application deployed on Vercel. It uses NextAuth for GitHub authentication and a Neon PostgreSQL database (via Prisma) to securely store user API keys.
-2. **The CLI Agent (`/src`):** A Node.js CLI application that implements the LangChain agent, the Gemini schema wrapper, and the device authorization polling flow.
+### 2. ⚡ Dynamic Gemini Fallback & Wraparound Loop
+* **Dynamic Model Discovery (`getAvailableGeminiModels`)**: Dynamically queries Google AI Studio API on startup to list all available `generateContent` models (over 20+ models including `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, etc.).
+* **Sticky Working Model**: Once a model succeeds, KP remains on that model for all subsequent queries.
+* **Infinite Wraparound Recovery**: If a model hits a `429 Too Many Requests` or quota limit, KP automatically switches to the next model. If all 20+ models are exhausted in a single turn, it pauses 5 seconds for quota reset and wraps around to the beginning, ensuring **zero 429 crash failures**.
+
+### 3. 🌐 Multi-Chain Support (13+ EVM Chains + Solana)
+* **EVM Mainnets & Testnets**: Ethereum Mainnet, Sepolia, Base Mainnet, Base Sepolia, Arbitrum One, Arbitrum Sepolia, Optimism, Optimism Sepolia, Polygon PoS, Polygon Amoy, Avalanche C-Chain, BNB Smart Chain (BSC), Fantom.
+* **Solana**: Solana Mainnet-Beta, Solana Devnet.
+
+### 4. 🍎 Apple-Grade Web Interface & Interactive Playground
+* Built following **Apple Design Principles** (`web/Apple_design_skill.md`): backdrop-filter frosted glass (`blur(25px)`), optical type sizing, spring active press states (`:active { scale: 0.97 }`), and an interactive in-browser **Terminal Sandbox**.
+
+---
+
+## 🏗️ Architecture Overview
+
+```
+                        ┌────────────────────────────────────────┐
+                        │              USER INPUT                │
+                        └───────────────────┬────────────────────┘
+                                            │
+               ┌────────────────────────────┴────────────────────────────┐
+               │                                                         │
+       ┌───────▼────────┐                                       ┌────────▼───────┐
+       │  Terminal CLI  │                                       │  Telegram Bot  │
+       │     (`kp`)     │                                       │ (@keipee_bot)  │
+       └───────┬────────┘                                       └────────┬───────┘
+               │                                                         │
+               │ (OAuth Device Flow)                                     │ (Single-Key)
+               ▼                                                         ▼
+       ┌─────────────────────────────────────────────────────────────────────────┐
+       │                  Next.js Web Dashboard & PostgreSQL                      │
+       │                   Vault Encrypted API Key Management                    │
+       └────────────────────────────────────┬────────────────────────────────────┘
+                                            │
+                                            ▼
+       ┌─────────────────────────────────────────────────────────────────────────┐
+       │              KP Agent Core (LangChain + Gemini Fallback)                │
+       │      Dynamic Model Discovery + Sticky Index + Infinite Wraparound       │
+       └────────────────────────────────────┬────────────────────────────────────┘
+                                            │
+                                            ▼
+       ┌─────────────────────────────────────────────────────────────────────────┐
+       │                     KeeperHub Onchain Execution Layer                   │
+       │   13+ EVM Chains (Eth, Base, Arb, OP, Polygon, BSC) + Solana Mainnet    │
+       └─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## 🛠️ Prerequisites
 
 - Node.js (v18+)
-- A KeeperHub API Key (Get one at [app.keeperhub.com](https://app.keeperhub.com) -> Settings -> API Keys)
-- A Gemini API Key (Get one for free at [Google AI Studio](https://aistudio.google.com/app/apikey))
-- Some testnet ETH in your KeeperHub wallet (e.g., Sepolia ETH).
+- KeeperHub API Key ([app.keeperhub.com](https://app.keeperhub.com) -> Settings -> API Keys)
+- Gemini API Key (Free from [Google AI Studio](https://aistudio.google.com/app/apikey))
+
+---
 
 ## 🚀 Quick Start
 
-You can install KP globally and run it from anywhere on your computer!
+### 1. Install CLI Globally
 
 **Mac/Linux:**
-
 ```bash
 curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash
 ```
 
 **Windows (PowerShell):**
-
 ```powershell
 iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex
 ```
 
-> **Note:** The installation scripts are hosted on the Vercel frontend domain (`kp-three-mu.vercel.app`) for a shorter, cleaner installation command. The source code for these scripts can be found in the `web/public/` directory of this repository.
-
-2. **Run the agent:**
-
-   ```bash
-   kp
-   ```
-
-3. **Authorize your device:**
-
-   The CLI will automatically generate a secure device code and open your browser to the KP Web Dashboard.
-   - Sign in with GitHub.
-   - Save your Gemini and KeeperHub API keys in the dashboard.
-   - Click "Authorize Device".
-   - The CLI will automatically detect the authorization and start the agent!
-
-4. **Start chatting!**
-   ```
-   🤖 KP is ready! Type your command (or 'exit' to quit):
-   > Send 0.001 ETH to vitalik.eth on Sepolia
-   ```
-
-## 🧠 How the Gemini Wrapper Works
-
-If you look in `src/agent.ts`, you'll see the magic that makes Gemini compatible with KeeperHub.
-
-Instead of passing the raw tools to the LLM (which causes schema validation errors), we wrap them in a new `DynamicStructuredTool`. We stringify the complex JSON schema and pass it in the tool's description, instructing the LLM to return a single JSON string argument (`args`).
-
-```typescript
-// Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
-const geminiCompatibleTools = tools.map((tool: any) => {
-  const schemaJson = JSON.stringify(zodToJsonSchema(tool.schema));
-  return new DynamicStructuredTool({
-    name: tool.name,
-    description: `${tool.description}\n\nIMPORTANT: You must pass a single JSON string argument named 'args' that matches this schema: ${schemaJson}`,
-    schema: z.object({
-      args: z
-        .string()
-        .describe(
-          "A JSON string containing all the required arguments for this tool.",
-        ),
-    }),
-    func: async (args) => {
-      const parsedArgs = JSON.parse(args.args);
-      return await tool.invoke(parsedArgs);
-    },
-  });
-});
+### 2. Run the Agent
+```bash
+kp
 ```
 
-This completely bypasses Gemini's strict schema validation while retaining 100% of the tool's functionality!
+### 3. Authorize Device
+The CLI will generate a secure 6-character device code and direct you to the Web Dashboard to sign in with GitHub, save your API keys, and click **Authorize Device**.
 
-## 🏆 Hackathon Proof of Execution
+### 4. Or Chat on Telegram
+Search for **[@keipee_bot](https://t.me/keipee_bot)** on Telegram, send `/start`, and reply with your KeeperHub API key!
 
-This agent (named **KP**) has successfully executed onchain transactions via KeeperHub!
+---
 
-- **Network:** Sepolia
-- **Action:** Transfer 0.001 ETH to `vitalik.eth`
-- **Transaction Hash:** [`0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3`](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3)
+## 🏆 Proof of Onchain Execution
 
-## 🗑️ Uninstall
+* **Agent Name:** KP Onchain AI Agent
+* **Execution Layer:** KeeperHub
+* **Network:** Sepolia Testnet
+* **Action:** Transfer native ETH via KeeperHub Toolkit
+* **Transaction Hash:** [`0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3`](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3)
 
-If you want to remove the CLI and clean up your configuration:
-
-1. **Unlink the CLI:**
-   From inside the `kp` directory, run:
-
-   ```bash
-   npm unlink
-   ```
-
-   _(Alternatively, run `npm uninstall -g kp` from anywhere)._
-
-2. **Remove your local configuration file:**
-   ```bash
-   rm ~/.kp-config.json
-   ```
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is open source and available under the [MIT License](LICENSE).
