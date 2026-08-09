@@ -240,7 +240,25 @@ const lastKnownEvmBalances = new Map<string, Record<string, bigint>>();
 const lastKnownSolBalances = new Map<string, Record<string, number>>();
 
 function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
-  setInterval(async () => {
+  console.log("📡 Real-time incoming token transfer monitor initialized...");
+
+  const monitorNetworks: { name: string; chain: any; symbol: string }[] = [
+    { name: "Sepolia Testnet", chain: sepolia, symbol: "ETH" },
+    { name: "Base Sepolia Testnet", chain: baseSepolia, symbol: "ETH" },
+    { name: "Base Mainnet", chain: base, symbol: "ETH" },
+    { name: "Ethereum Mainnet", chain: mainnet, symbol: "ETH" },
+    { name: "Arbitrum One", chain: arbitrum, symbol: "ETH" },
+    { name: "Arbitrum Sepolia", chain: arbitrumSepolia, symbol: "ETH" },
+    { name: "Optimism", chain: optimism, symbol: "ETH" },
+    { name: "Optimism Sepolia", chain: optimismSepolia, symbol: "ETH" },
+    { name: "Polygon PoS", chain: polygon, symbol: "POL" },
+    { name: "Polygon Amoy", chain: polygonAmoy, symbol: "AMOY" },
+    { name: "Avalanche C-Chain", chain: avalanche, symbol: "AVAX" },
+    { name: "BNB Smart Chain", chain: bsc, symbol: "BNB" },
+    { name: "Fantom", chain: fantom, symbol: "FTM" },
+  ];
+
+  const checkBalances = async () => {
     try {
       const users = await dbRetry(async () => {
         return await prisma.telegramUser.findMany({
@@ -255,19 +273,19 @@ function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
         const profile = await getKeeperHubUser(u.keeperhubKey);
         if (!profile) continue;
 
-        const evmAddr = profile.walletAddress;
-        const solAddr = profile.solanaWalletAddress;
+        const evmAddr =
+          profile.walletAddress ||
+          profile.address ||
+          profile.evmAddress ||
+          profile.data?.walletAddress ||
+          profile.data?.address;
+
+        const solAddr =
+          profile.solanaWalletAddress ||
+          profile.solanaAddress ||
+          profile.data?.solanaWalletAddress;
 
         if (evmAddr) {
-          const monitorNetworks: { name: string; chain: any; symbol: string }[] = [
-            { name: "Sepolia Testnet", chain: sepolia, symbol: "ETH" },
-            { name: "Base Mainnet", chain: base, symbol: "ETH" },
-            { name: "Ethereum Mainnet", chain: mainnet, symbol: "ETH" },
-            { name: "Arbitrum One", chain: arbitrum, symbol: "ETH" },
-            { name: "Optimism", chain: optimism, symbol: "ETH" },
-            { name: "Polygon PoS", chain: polygon, symbol: "POL" },
-          ];
-
           let userEvmMap = lastKnownEvmBalances.get(chatId);
           if (!userEvmMap) {
             userEvmMap = {};
@@ -284,6 +302,10 @@ function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
                 const diff = currentBalance - prevBalance;
                 const formattedDiff = formatEther(diff);
 
+                console.log(
+                  `🔔 Incoming token detected for chat ${chatId}: +${formattedDiff} ${net.symbol} on ${net.name}`,
+                );
+
                 const msg =
                   "🔔 *Incoming Token Received!* 🚀\n\n" +
                   `💰 *Amount:* \`+${formattedDiff} ${net.symbol}\`\n` +
@@ -291,7 +313,11 @@ function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
                   `💳 *Wallet:* \`${evmAddr}\`\n\n` +
                   "✨ Your KeeperHub wallet balance has been updated.";
 
-                await botInstance.telegram.sendMessage(chatId, msg, { parse_mode: "Markdown" }).catch(() => {});
+                await botInstance.telegram
+                  .sendMessage(chatId, msg, { parse_mode: "Markdown" })
+                  .catch((err) => {
+                    console.error("Failed to send Telegram transfer alert:", err.message);
+                  });
               }
 
               userEvmMap[net.name] = currentBalance;
@@ -314,6 +340,8 @@ function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
             const prevSol = userSolMap["solana-mainnet"];
             if (prevSol !== undefined && currentSolBalance > prevSol) {
               const diffSol = (currentSolBalance - prevSol).toFixed(4);
+              console.log(`🔔 Incoming SOL detected for chat ${chatId}: +${diffSol} SOL on Solana`);
+
               const msg =
                 "🔔 *Incoming SOL Received!* 🚀\n\n" +
                 `💰 *Amount:* \`+${diffSol} SOL\`\n` +
@@ -321,7 +349,11 @@ function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
                 `💳 *Wallet:* \`${solAddr}\`\n\n` +
                 "✨ Your Solana wallet balance has been updated.";
 
-              await botInstance.telegram.sendMessage(chatId, msg, { parse_mode: "Markdown" }).catch(() => {});
+              await botInstance.telegram
+                .sendMessage(chatId, msg, { parse_mode: "Markdown" })
+                .catch((err) => {
+                  console.error("Failed to send Telegram SOL transfer alert:", err.message);
+                });
             }
 
             userSolMap["solana-mainnet"] = currentSolBalance;
@@ -329,7 +361,13 @@ function startIncomingTransferMonitor(botInstance: Telegraf<any>) {
         }
       }
     } catch (err) {}
-  }, 20000);
+  };
+
+  // Run immediate first check on startup
+  checkBalances();
+
+  // Periodic poll every 10 seconds
+  setInterval(checkBalances, 10000);
 }
 
 // In-memory conversation history per chat ID
@@ -823,8 +861,8 @@ async function launchWithRetry(maxAttempts: number = 5, delayMs: number = 3000) 
         ])
         .catch((err) => console.warn("Failed to set bot commands:", err.message));
 
-      await bot.launch();
       startIncomingTransferMonitor(bot);
+      await bot.launch();
       return;
     } catch (err: any) {
       console.warn(
