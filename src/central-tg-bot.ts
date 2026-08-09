@@ -17,10 +17,17 @@ import { createPublicClient, http, formatEther } from "viem";
 import {
   mainnet,
   base,
+  baseSepolia,
   arbitrum,
+  arbitrumSepolia,
   optimism,
+  optimismSepolia,
   polygon,
+  polygonAmoy,
   sepolia,
+  avalanche,
+  bsc,
+  fantom,
 } from "viem/chains";
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
@@ -50,11 +57,29 @@ const bot = new Telegraf(botToken, {
 
 const evmChains: Record<string, any> = {
   ethereum: mainnet,
-  base,
-  arbitrum,
-  optimism,
-  polygon,
-  sepolia,
+  eth: mainnet,
+  mainnet: mainnet,
+  sepolia: sepolia,
+  "eth-sepolia": sepolia,
+  base: base,
+  "base-sepolia": baseSepolia,
+  basesepolia: baseSepolia,
+  arbitrum: arbitrum,
+  "arbitrum-sepolia": arbitrumSepolia,
+  arbitrumsepolia: arbitrumSepolia,
+  optimism: optimism,
+  op: optimism,
+  "optimism-sepolia": optimismSepolia,
+  opsepolia: optimismSepolia,
+  polygon: polygon,
+  matic: polygon,
+  "polygon-amoy": polygonAmoy,
+  amoy: polygonAmoy,
+  avalanche: avalanche,
+  avax: avalanche,
+  bsc: bsc,
+  binance: bsc,
+  fantom: fantom,
 };
 
 // Retry helper for handling transient network errors
@@ -278,17 +303,24 @@ async function runAgentForUser(keeperhubKey: string, history: any[]) {
   const getEvmBalanceTool = new DynamicStructuredTool({
     name: "get_evm_balance",
     description:
-      "Get the native token balance (ETH, MATIC, etc.) of an EVM address on a specific network.",
+      "Get the native token balance (ETH, MATIC, AVAX, BNB, FTM, etc.) of an EVM address on a specific network.",
     schema: z.object({
       address: z.string().describe("The EVM address to check (e.g., 0x...)."),
       network: z
         .enum([
           "ethereum",
-          "base",
-          "arbitrum",
-          "optimism",
-          "polygon",
           "sepolia",
+          "base",
+          "base-sepolia",
+          "arbitrum",
+          "arbitrum-sepolia",
+          "optimism",
+          "optimism-sepolia",
+          "polygon",
+          "polygon-amoy",
+          "avalanche",
+          "bsc",
+          "fantom",
         ])
         .describe("The network to check the balance on."),
     }),
@@ -363,8 +395,11 @@ async function runAgentForUser(keeperhubKey: string, history: any[]) {
 
   let systemPrompt =
     "You are KP, a helpful AI assistant that can execute onchain transactions using KeeperHub. Always explain what you are going to do before executing a transaction.\n\n" +
+    "SUPPORTED NETWORKS & CHAINS:\n" +
+    "• EVM: Ethereum Mainnet, Sepolia, Base, Base Sepolia, Arbitrum One, Arbitrum Sepolia, Optimism, Optimism Sepolia, Polygon PoS, Polygon Amoy, Avalanche C-Chain, BNB Smart Chain (BSC), Fantom.\n" +
+    "• Solana: Solana Mainnet-Beta, Solana Devnet.\n\n" +
     "CRITICAL INSTRUCTIONS:\n" +
-    "1. NETWORK SELECTION FOR BALANCE QUERIES: If the user asks to check their balance or check their wallet without specifying a target network/chain (e.g. 'What is my wallet balance?'), DO NOT attempt to query multiple networks automatically. Instead, ask the user to specify which network they want to check (e.g. Sepolia, Ethereum, Base, Arbitrum, Optimism, Polygon, or Solana devnet/mainnet).\n" +
+    "1. NETWORK SELECTION FOR BALANCE QUERIES: If the user asks to check their balance or check their wallet without specifying a target network/chain (e.g. 'What is my wallet balance?'), DO NOT attempt to query multiple networks automatically. Instead, ask the user to specify which network they want to check (e.g., Sepolia, Base Sepolia, Ethereum, Base, Arbitrum, Optimism, Polygon, Solana, etc.).\n" +
     "2. READ vs WRITE: Read queries (like balance checks) are information-only. Write operations (transfers, token sends, contract executions) send crypto out.";
 
   if (evmWalletAddress) {

@@ -12,8 +12,10 @@ import { Zap, Bot } from "lucide-react";
 async function getGithubStars() {
   try {
     const res = await fetch("https://api.github.com/repos/Kaycee276/kp", {
+      headers: { "User-Agent": "KP-App" },
       next: { revalidate: 60 },
     });
+    if (!res.ok) return 0;
     const data = await res.json();
     return data.stargazers_count || 0;
   } catch {
