@@ -757,7 +757,7 @@ async function launchWithRetry(maxAttempts: number = 30, delayMs: number = 4000)
 }
 
 // Start a lightweight HTTP server for Render / Cloud health check port binding & UptimeRobot monitoring
-const port = process.env.PORT || 8080;
+const port = Number(process.env.PORT) || 8080;
 const server = nodeHttp.createServer((req, res) => {
   const method = req.method?.toUpperCase();
   const bodyText = "KP Telegram Bot is active and running!\n";
@@ -776,8 +776,8 @@ const server = nodeHttp.createServer((req, res) => {
   });
   res.end(bodyText);
 });
-server.listen(port, () => {
-  console.log(`🌐 Health check HTTP server (GET/HEAD) listening on port ${port}`);
+server.listen(port, "0.0.0.0", () => {
+  console.log(`🌐 Health check HTTP server (GET/HEAD) listening on 0.0.0.0:${port}`);
 });
 
 launchWithRetry();
