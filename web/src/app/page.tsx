@@ -303,7 +303,7 @@ export default async function Home() {
               }
             >
               <DashboardClient
-                initialKeeperhubKey={user?.keeperhubKey || ""}
+                hasKeeperhubKey={!!user?.keeperhubKey}
               />
             </Suspense>
           </div>

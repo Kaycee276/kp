@@ -12,11 +12,12 @@ import {
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardClient({
-  initialKeeperhubKey,
+  hasKeeperhubKey: initialHasKey,
 }: {
-  initialKeeperhubKey: string;
+  hasKeeperhubKey: boolean;
 }) {
-  const [keeperhubKey, setKeeperhubKey] = useState(initialKeeperhubKey);
+  const [keeperhubKey, setKeeperhubKey] = useState("");
+  const [hasKey, setHasKey] = useState(initialHasKey);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -25,6 +26,7 @@ export default function DashboardClient({
   const callbackUrl = searchParams.get("callbackUrl");
 
   const handleSave = async () => {
+    if (!keeperhubKey.trim()) return;
     setIsSaving(true);
     try {
       const res = await fetch("/api/user/keys", {
@@ -34,6 +36,8 @@ export default function DashboardClient({
       });
       if (res.ok) {
         setSaved(true);
+        setHasKey(true);
+        setKeeperhubKey(""); // Immediately clear raw key string from browser memory
         if (callbackUrl) {
           router.push(callbackUrl);
         } else {
@@ -73,16 +77,32 @@ export default function DashboardClient({
         <div className="space-y-6">
           {/* KeeperHub Key Input */}
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider">
-              KeeperHub API Key
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-white/70 uppercase tracking-wider">
+                KeeperHub API Key
+              </label>
+              {hasKey ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold border border-emerald-500/20">
+                  <CheckCircle2 className="w-3 h-3" />
+                  <span>Key Saved in Vault</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-semibold border border-amber-500/20">
+                  <span>No Key Configured</span>
+                </span>
+              )}
+            </div>
             <div className="relative">
               <input
                 type="password"
                 value={keeperhubKey}
                 onChange={(e) => setKeeperhubKey(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#0ab955] focus:ring-2 focus:ring-[#0ab955]/20 transition-all font-mono placeholder:text-white/20"
-                placeholder="kh_..."
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#0ab955] focus:ring-2 focus:ring-[#0ab955]/20 transition-all font-mono placeholder:text-white/30"
+                placeholder={
+                  hasKey
+                    ? "•••••••••••••••• (Leave blank to keep existing key)"
+                    : "kh_..."
+                }
               />
             </div>
             <p className="text-xs text-white/40">
@@ -107,7 +127,7 @@ export default function DashboardClient({
             </p>
             <button
               onClick={handleSave}
-              disabled={isSaving}
+              disabled={isSaving || !keeperhubKey.trim()}
               className="flex items-center gap-2 bg-gradient-to-r from-[#0ab955] to-[#10b981] text-white hover:opacity-90 px-6 py-2.5 rounded-full text-xs font-semibold apple-button disabled:opacity-50 transition-all shadow-lg shadow-[#0ab955]/20"
             >
               {saved ? (
