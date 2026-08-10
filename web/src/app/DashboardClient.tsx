@@ -5,8 +5,6 @@ import {
   Key,
   CheckCircle2,
   Cpu,
-  Eye,
-  EyeOff,
   Bot,
   Activity,
   ExternalLink,
@@ -19,7 +17,6 @@ export default function DashboardClient({
   initialKeeperhubKey: string;
 }) {
   const [keeperhubKey, setKeeperhubKey] = useState(initialKeeperhubKey);
-  const [showKeeper, setShowKeeper] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -81,23 +78,12 @@ export default function DashboardClient({
             </label>
             <div className="relative">
               <input
-                type={showKeeper ? "text" : "password"}
+                type="password"
                 value={keeperhubKey}
                 onChange={(e) => setKeeperhubKey(e.target.value)}
                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#0ab955] focus:ring-2 focus:ring-[#0ab955]/20 transition-all font-mono placeholder:text-white/20"
                 placeholder="kh_..."
               />
-              <button
-                type="button"
-                onClick={() => setShowKeeper(!showKeeper)}
-                className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors"
-              >
-                {showKeeper ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
             </div>
             <p className="text-xs text-white/40">
               Executes onchain transactions. Get yours at{" "}
