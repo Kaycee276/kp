@@ -36,7 +36,11 @@ dotenv.config();
 dotenv.config({ path: "./web/.env" });
 
 const { Pool } = pg;
-const dbUrl = process.env.DATABASE_URL || "";
+const rawDbUrl = process.env.DATABASE_URL || "";
+const dbUrl = rawDbUrl
+  .replace("sslmode=require", "sslmode=verify-full")
+  .replace("sslmode=prefer", "sslmode=verify-full");
+
 const pool = new Pool({
   connectionString: dbUrl,
   connectionTimeoutMillis: 10000,
