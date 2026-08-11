@@ -1,10 +1,11 @@
-# KP: Zero-to-One KeeperHub Onchain AI Agent Platform
+# KP: Zero-to-One KeeperHub Onchain AI Agent Platform 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black?logo=next.js)](https://nextjs.org/)
 [![KeeperHub](https://img.shields.io/badge/KeeperHub-Execution_Layer-0AB955)](https://keeperhub.com)
 [![Gemini](https://img.shields.io/badge/Gemini-Fallback_Engine-blue?logo=google)](https://ai.google.dev/)
 [![Telegram Bot](https://img.shields.io/badge/Telegram_Bot-@keipee__bot-26A5E4?logo=telegram)](https://t.me/keipee_bot)
+[![UptimeRobot](https://img.shields.io/badge/Status-Operational_🟢-00E676)](https://stats.uptimerobot.com/SjyoYOBuNi/803699400)
 
 **KP** is a production-grade, zero-to-one platform and developer template for building AI agents that execute real onchain transactions using [KeeperHub](https://keeperhub.com) and [LangChain](https://js.langchain.com/).
 
@@ -14,12 +15,13 @@ Built for **The Last Mile — KeeperHub Agent Hackathon**, KP targets the **Best
 
 ## 🏆 Hackathon Submission Summary
 
-| Requirement                   | Status            | Details                                                                                                                                                                    |
-| ----------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **KeeperHub Execution Layer** | ✅ Verified       | Executes real transfers and contract interactions on 13+ EVM chains & Solana.                                                                                              |
-| **Source Code Repository**    | ✅ Public         | Open Source Monorepo ([github.com/Kaycee276/kp](https://github.com/Kaycee276/kp))                                                                                          |
-| **Onchain Transaction Proof** | ✅ Verified       | [`0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3`](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3) |
-| **Multi-Surface Access**      | ✅ CLI + Web + TG | Terminal CLI, Web Dashboard, and Centralized Telegram Bot ([@keipee_bot](https://t.me/keipee_bot)).                                                                        |
+| Requirement | Status | Details |
+|---|---|---|
+| **KeeperHub Execution Layer** | ✅ Verified | Executes real transfers and contract interactions on 13+ EVM chains & Solana. |
+| **Source Code Repository** | ✅ Public | Open Source Monorepo ([github.com/Kaycee276/kp](https://github.com/Kaycee276/kp)) |
+| **Onchain Transaction Proof** | ✅ Verified | [`0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3`](https://sepolia.etherscan.io/tx/0x6bdfd39b1666933e826a967e8bf3161c3bef7093ff72e909c0cfb6af9c04c4d3) |
+| **Multi-Surface Access** | ✅ CLI + Web + TG | Terminal CLI, Web Dashboard, and Centralized Telegram Bot ([@keipee_bot](https://t.me/keipee_bot)). |
+| **System Uptime & Monitoring** | ✅ Live 24/7 | Render & Vercel deployment with [UptimeRobot Live Status Page](https://stats.uptimerobot.com/SjyoYOBuNi/803699400). |
 
 ---
 
@@ -30,19 +32,16 @@ Built for **The Last Mile — KeeperHub Agent Hackathon**, KP targets the **Best
 The CLI can be installed with a single command on Mac, Linux, or Windows. The installer automatically clones the project, installs dependencies, builds the binary, and links `kp` globally.
 
 #### Mac / Linux:
-
 ```bash
 curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash
 ```
 
 #### Windows (PowerShell):
-
 ```powershell
 iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex
 ```
 
 Once installed, simply run:
-
 ```bash
 kp
 ```
@@ -52,6 +51,20 @@ kp
 ### 2. Telegram AI Bot (`@keipee_bot`) Access
 
 No installation required! Message [@keipee_bot](https://t.me/keipee_bot) on Telegram from any device.
+
+---
+
+## 📹 Demo Video Script & Walkthrough Guide (2-Minute Outline)
+
+When recording your hackathon submission demo video, follow this structured narrative:
+
+| Timestamp | Section | Screen & Action | Key Talking Points |
+| :--- | :--- | :--- | :--- |
+| **0:00 - 0:20** | **Hook & Intro** | Web Dashboard Landing Page (`https://kp-three-mu.vercel.app`) | "Welcome to KP — an onchain AI agent platform built for The Last Mile KeeperHub Hackathon, targeting the Best Onboarding UX bounty." |
+| **0:20 - 0:55** | **Telegram Bot Demo** | Telegram Mobile or Desktop Chatting with `@keipee_bot` | "Users start by messaging @keipee_bot. Onboarding requires only a KeeperHub key — LLM keys are handled server-side. Addresses render in tap-to-copy pills and tx hashes turn into 1-tap Etherscan links." |
+| **0:55 - 1:30** | **CLI & OAuth Pairing** | Terminal Window + Web Browser Pairing (`/link?code=...`) | "Developers install via 1-line curl script. Running `kp` triggers OAuth Device Pairing. Once approved, the CLI executes transactions with manual interactive confirmation safeguards." |
+| **1:30 - 1:50** | **Security & Reliability** | Web Vault + UptimeRobot Status Page | "Zero raw API keys are sent to the frontend. The engine uses a dynamic 20+ Gemini model fallback cascade to guarantee zero rate-limit crashes with 99.9% uptime." |
+| **1:50 - 2:00** | **Onchain Proof & Wrap-up** | Etherscan Transaction Page (`0x6bdfd39b...`) | "Here is our verified Sepolia transaction proof executed live via KeeperHub. Thank you!" |
 
 ---
 
@@ -90,25 +103,23 @@ sequenceDiagram
 ```
 
 ### Step-by-Step Telegram Onboarding & Interaction
-
 1. **Initiate Chat**: Open [@keipee_bot](https://t.me/keipee_bot) on Telegram and tap **Start** (or send `/start`).
 2. **Single-Key Input**: If your KeeperHub key is not saved yet, the bot asks for your KeeperHub API Key (`kh_...`).
 3. **Automatic Validation & Encryption**: The bot validates your key against KeeperHub and saves it securely to the database. You never need to enter a Gemini LLM key (the server supplies Gemini AI reasoning automatically).
 4. **Natural Language Prompts**: Send requests like:
-   - _"What is my ETH balance on Sepolia?"_
-   - _"Send 0.01 Sepolia ETH to 0xF1a3c409ebf9B2f5a8Dbaf7b37E8d807215f0bAA"_
+   - *"What is my ETH balance on Sepolia?"*
+   - *"Send 0.01 Sepolia ETH to 0xF1a3c409ebf9B2f5a8Dbaf7b37E8d807215f0bAA"*
 5. **Tap-to-Copy & 1-Tap Explorer Links**: Wallet addresses are formatted in monospaced backticks (`0x...`) for tap-to-copy, and transaction hashes are automatically turned into 1-tap Etherscan links.
 
 ### Available Telegram Commands
-
-| Command                | Action                                       |
-| :--------------------- | :------------------------------------------- |
-| `/start`               | Start or check setup status                  |
+| Command | Action |
+| :--- | :--- |
+| `/start` | Start or check setup status |
 | `/profile` / `/status` | View connected EVM & Solana wallet addresses |
-| `/reset` / `/keys`     | Update or change KeeperHub API key           |
-| `/clear`               | Clear conversation history                   |
-| `/cancel`              | Cancel active key input session              |
-| `/help`                | View help guide & supported actions          |
+| `/reset` / `/keys` | Update or change KeeperHub API key |
+| `/clear` | Clear conversation history |
+| `/cancel` | Cancel active key input session |
+| `/help` | View help guide & supported actions |
 
 ---
 
@@ -148,7 +159,6 @@ sequenceDiagram
 ```
 
 ### Step-by-Step CLI Workflow
-
 1. **Installation**: Run `curl -fsSL https://kp-three-mu.vercel.app/install.sh | bash` (Mac/Linux) or `iwr https://kp-three-mu.vercel.app/install.ps1 -useb | iex` (Windows).
 2. **Launch CLI**: Type `kp` in your terminal.
 3. **OAuth Device Pair (First Time Only)**:
@@ -163,27 +173,28 @@ sequenceDiagram
 ## 🌟 Comprehensive Feature Matrix
 
 ### 📱 1. Centralized Telegram AI Bot (`@keipee_bot`)
-
 - **1-Step Single-Key Onboarding**: Users only need to reply with their KeeperHub API key. The bot automatically manages LLM API keys server-side, keeping developer credentials 100% private.
 - **Tap-to-Copy Wallet Address Pills**: All EVM (`0x...`) and Solana wallet addresses are rendered in monospaced code blocks. Tapping an address on mobile or desktop instantly copies it to the clipboard.
 - **Resilient Database Fallback**: Implements PostgreSQL connection pooling with `dbRetry` and in-memory user caching, guaranteeing 100% uptime even if database queries drop.
 
 ### ⚡ 2. Dynamic Gemini Fallback Engine
-
 - **Dynamic Model Discovery (`getAvailableGeminiModels`)**: Queries Google AI Studio on startup to list all available `generateContent` models (20+ models including `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, etc.).
 - **Sticky Model Tracking**: Remembers the last working model index across turns to minimize switching latency.
 - **Infinite Wraparound Recovery**: If a model hits a `429 Too Many Requests` or quota limit, KP automatically cascades to the next available model.
 - **Gemini Schema Payload Wrapper**: Wraps complex JSON schemas into a `DynamicStructuredTool` format to bypass Gemini `400 Bad Request` schema errors.
 
 ### 🌐 3. Multi-Chain Execution Matrix (13+ EVM Chains + Solana)
-
 - **EVM Mainnets & Testnets**: Ethereum Mainnet, Sepolia Testnet, Base Mainnet, Base Sepolia, Arbitrum One, Arbitrum Sepolia, Optimism, Optimism Sepolia, Polygon PoS, Polygon Amoy, Avalanche C-Chain, BNB Smart Chain (BSC), Fantom Opera.
 - **Solana**: Solana Mainnet-Beta, Solana Devnet.
 
-### 🍎 4. Apple-Grade Web Interface & Interactive Playground
+### 🔒 4. Zero-Raw-Key Frontend Security Architecture
+- **Boolean Status Flag Only**: Server passes `hasKeeperhubKey={!!user?.keeperhubKey}` boolean flag to frontend. Raw key strings are **NEVER** loaded or rendered in client HTML or React state.
+- **Permanent Password Masking**: Input fields remain strictly `<input type="password" />` without plain-text toggles. Memory state is wiped immediately after posting updates.
 
-- **Design System**: Dark obsidian theme (`#0a0a0c`), translucent glassmorphism (`backdrop-filter: blur(25px)`), optical typography (SF Pro / Inter), and catch-light borders.
+### 🍎 5. Apple-Grade Web Interface & Science Gothic Design System
+- **Design System**: Dark obsidian theme (`#0a0a0c`), translucent glassmorphism (`backdrop-filter: blur(25px)`), and Science Gothic variable typography.
 - **Interactive Web Terminal Sandbox (`TerminalPlayground.tsx`)**: In-browser interactive CLI simulator with Mac window controls, preset command chips, and real-time response simulation.
+- **Inline Button Feedback**: Visual loading spinners (`<Loader2 className="animate-spin" />`) on GitHub Sign-In and Key Save actions.
 - **OAuth Device Pairing Flow (`/link`)**: Pair CLI terminal instances with the Web Dashboard vault using 6-character device codes.
 
 ---
@@ -206,7 +217,7 @@ sequenceDiagram
                ▼                                                         ▼
        ┌─────────────────────────────────────────────────────────────────────────┐
        │                  Next.js Web Dashboard & PostgreSQL                      │
-       │                   Vault Encrypted API Key Management                    │
+       │           Zero-Raw-Key Encrypted API Vault & Device Pairing             │
        └────────────────────────────────────┬────────────────────────────────────┘
                                             │
                                             ▼
