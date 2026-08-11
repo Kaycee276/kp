@@ -4,12 +4,16 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 
-export default function LoginButton() {
+export default function LoginButton({
+  callbackUrl,
+}: {
+  callbackUrl?: string;
+}) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleClick = () => {
     setIsLoading(true);
-    signIn("github");
+    signIn("github", callbackUrl ? { callbackUrl } : undefined);
   };
 
   return (

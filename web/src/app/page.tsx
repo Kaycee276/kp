@@ -7,7 +7,7 @@ import DashboardClient from "./DashboardClient";
 import CopyButton from "./CopyButton";
 import TerminalPlayground from "./TerminalPlayground";
 import { Suspense } from "react";
-import { Zap, Bot, ExternalLink } from "lucide-react";
+import { Zap, Bot, ExternalLink, AlertCircle } from "lucide-react";
 
 async function getGithubStars() {
   try {
@@ -87,9 +87,15 @@ function AppleHeader({
   );
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<{ callbackUrl?: string }>;
+}) {
   const session = await getServerSession(authOptions);
   const stars = await getGithubStars();
+  const params = searchParams ? await searchParams : {};
+  const callbackUrl = params.callbackUrl;
 
   if (!session?.user) {
     return (
@@ -115,8 +121,20 @@ export default async function Home() {
               KeeperHub smart tools and Gemini fallback AI intelligence.
             </p>
 
+            {callbackUrl ? (
+              <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl max-w-lg mx-auto text-center space-y-1.5 my-4 backdrop-blur-md animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Sign In Required</span>
+                </div>
+                <p className="text-xs text-white/80 leading-relaxed">
+                  Please sign in with GitHub to save your KeeperHub API key to your vault and authorize terminal devices.
+                </p>
+              </div>
+            ) : null}
+
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <LoginButton />
+              <LoginButton callbackUrl={callbackUrl} />
               <a
                 href="https://github.com/Kaycee276/kp"
                 target="_blank"
