@@ -39,7 +39,6 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  geminiKey     String?
   keeperhubKey  String?
   accounts      Account[]
   sessions      Session[]
@@ -65,7 +64,6 @@ model DeviceCode {
 
 model TelegramUser {
   chatId       String   @id
-  geminiKey    String?
   keeperhubKey String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

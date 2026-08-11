@@ -13,9 +13,16 @@ export async function POST(req: Request) {
   try {
     const { keeperhubKey } = await req.json();
 
-    await prisma.user.update({
+    await prisma.user.upsert({
       where: { id: session.user.id },
-      data: {
+      update: {
+        keeperhubKey,
+      },
+      create: {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        image: session.user.image,
         keeperhubKey,
       },
     });
