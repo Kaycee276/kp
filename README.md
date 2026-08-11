@@ -54,20 +54,6 @@ No installation required! Message [@keipee_bot](https://t.me/keipee_bot) on Tele
 
 ---
 
-## 📹 Demo Video Script & Walkthrough Guide (2-Minute Outline)
-
-When recording your hackathon submission demo video, follow this structured narrative:
-
-| Timestamp | Section | Screen & Action | Key Talking Points |
-| :--- | :--- | :--- | :--- |
-| **0:00 - 0:20** | **Hook & Intro** | Web Dashboard Landing Page (`https://kp-three-mu.vercel.app`) | "Welcome to KP — an onchain AI agent platform built for The Last Mile KeeperHub Hackathon, targeting the Best Onboarding UX bounty." |
-| **0:20 - 0:55** | **Telegram Bot Demo** | Telegram Mobile or Desktop Chatting with `@keipee_bot` | "Users start by messaging @keipee_bot. Onboarding requires only a KeeperHub key — LLM keys are handled server-side. Addresses render in tap-to-copy pills and tx hashes turn into 1-tap Etherscan links." |
-| **0:55 - 1:30** | **CLI & OAuth Pairing** | Terminal Window + Web Browser Pairing (`/link?code=...`) | "Developers install via 1-line curl script. Running `kp` triggers OAuth Device Pairing. Once approved, the CLI executes transactions with manual interactive confirmation safeguards." |
-| **1:30 - 1:50** | **Security & Reliability** | Web Vault + UptimeRobot Status Page | "Zero raw API keys are sent to the frontend. The engine uses a dynamic 20+ Gemini model fallback cascade to guarantee zero rate-limit crashes with 99.9% uptime." |
-| **1:50 - 2:00** | **Onchain Proof & Wrap-up** | Etherscan Transaction Page (`0x6bdfd39b...`) | "Here is our verified Sepolia transaction proof executed live via KeeperHub. Thank you!" |
-
----
-
 ## 📱 Telegram Bot Workflow (`@keipee_bot`)
 
 The Telegram Bot allows users to check balances and execute onchain actions directly on mobile or desktop without installing anything or managing Gemini LLM keys.
