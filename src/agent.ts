@@ -220,10 +220,20 @@ async function main() {
         const data = await pollRes.json();
 
         if (data.status === "authorized") {
-          geminiKey = data.geminiKey;
-          keeperhubKey = data.keeperhubKey;
-          config.GEMINI_API_KEY = geminiKey;
-          config.KEEPERHUB_API_KEY = keeperhubKey;
+          geminiKey =
+            data.geminiKey ||
+            process.env.GEMINI_API_KEY ||
+            process.env.GOOGLE_API_KEY ||
+            config.GEMINI_API_KEY ||
+            "";
+          keeperhubKey =
+            data.keeperhubKey ||
+            process.env.KEEPERHUB_API_KEY ||
+            config.KEEPERHUB_API_KEY ||
+            "";
+
+          if (geminiKey) config.GEMINI_API_KEY = geminiKey;
+          if (keeperhubKey) config.KEEPERHUB_API_KEY = keeperhubKey;
           saveConfig(config);
           authorized = true;
           console.log(
@@ -242,6 +252,33 @@ async function main() {
       );
       process.exit(1);
     }
+  }
+
+  if (!geminiKey) {
+    geminiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      config.GEMINI_API_KEY ||
+      "";
+  }
+
+  if (!geminiKey) {
+    console.log(
+      `${colors.yellow}\n[NOTE] Gemini API Key not found.${colors.reset}`,
+    );
+    geminiKey = await askQuestion(
+      "Please enter your Gemini API Key (or press Enter to skip if set in environment): ",
+    );
+    geminiKey = geminiKey.trim();
+    if (geminiKey) {
+      config.GEMINI_API_KEY = geminiKey;
+      saveConfig(config);
+    }
+  }
+
+  if (geminiKey) {
+    process.env.GOOGLE_API_KEY = geminiKey;
+    process.env.GEMINI_API_KEY = geminiKey;
   }
 
   // 1. Initialize the LLM

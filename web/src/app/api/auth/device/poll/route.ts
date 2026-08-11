@@ -15,11 +15,10 @@ export async function POST(req: Request) {
     }
 
     if (code.status === "authorized" && code.user) {
-      // Return the keys to the CLI (using centralized server GEMINI_API_KEY)
       return NextResponse.json({
         status: "authorized",
-        geminiKey: process.env.GEMINI_API_KEY || code.user.geminiKey,
-        keeperhubKey: code.user.keeperhubKey,
+        geminiKey: code.user.geminiKey || "",
+        keeperhubKey: code.user.keeperhubKey || "",
       });
     }
 
