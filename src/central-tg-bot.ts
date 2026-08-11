@@ -444,12 +444,35 @@ async function runAgentForUser(keeperhubKey: string, history: any[]) {
             "A JSON string containing all the required arguments for this tool.",
           ),
       }),
-      func: async (args) => {
+      func: async (args: any) => {
         try {
-          const parsedArgs = JSON.parse(args.args);
+          let parsedArgs: any = args;
+
+          if (typeof args === "string") {
+            try {
+              parsedArgs = JSON.parse(args);
+            } catch {}
+          }
+
+          if (parsedArgs && typeof parsedArgs.args === "string") {
+            try {
+              parsedArgs = JSON.parse(parsedArgs.args);
+            } catch {}
+          } else if (
+            parsedArgs &&
+            typeof parsedArgs.args === "object" &&
+            parsedArgs.args !== null
+          ) {
+            parsedArgs = parsedArgs.args;
+          }
+
           return await tool.invoke(parsedArgs);
         } catch (e: any) {
-          return `Error parsing or executing tool: ${e.message}`;
+          try {
+            return await tool.invoke(args);
+          } catch (err: any) {
+            return `Error executing tool ${tool.name}: ${e.message || err.message}`;
+          }
         }
       },
     });
