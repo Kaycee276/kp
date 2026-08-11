@@ -15,9 +15,16 @@ export async function POST(req: Request) {
     }
 
     if (code.status === "authorized" && code.user) {
+      // Return server environment GEMINI_API_KEY (from Vercel) or user vault key
+      const geminiKey =
+        process.env.GEMINI_API_KEY ||
+        process.env.GOOGLE_API_KEY ||
+        code.user.geminiKey ||
+        "";
+
       return NextResponse.json({
         status: "authorized",
-        geminiKey: code.user.geminiKey || "",
+        geminiKey,
         keeperhubKey: code.user.keeperhubKey || "",
       });
     }
