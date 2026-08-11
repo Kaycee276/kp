@@ -409,6 +409,8 @@ function isWriteOrSendAction(toolName: string): boolean {
   return true;
 }
 
+  const approvedTxSignatures = new Set<string>();
+
   // Wrap tools for Gemini compatibility (Gemini rejects complex JSON schemas)
   const geminiCompatibleTools = allTools.map((tool: any) => {
     const schemaJson = JSON.stringify(zodToJsonSchema(tool.schema));
@@ -425,10 +427,10 @@ function isWriteOrSendAction(toolName: string): boolean {
       func: async (args) => {
         try {
           const parsedArgs = JSON.parse(args.args);
-
           const isWrite = isWriteOrSendAction(tool.name);
+          const txSignature = `${tool.name}:${JSON.stringify(parsedArgs)}`;
 
-          if (!isTgBot && isWrite) {
+          if (!isTgBot && isWrite && !approvedTxSignatures.has(txSignature)) {
             spinner.stop();
             console.log(
               `\n${colors.yellow}[CONFIRMATION REQUIRED - SENDING TRANSACTION]${colors.reset}`,
@@ -455,6 +457,7 @@ function isWriteOrSendAction(toolName: string): boolean {
               return "User rejected the transaction. Do not attempt to execute it again. Ask the user what they want to do next.";
             }
 
+            approvedTxSignatures.add(txSignature);
             console.log(
               `${colors.green}[APPROVED] Executing transaction...${colors.reset}`,
             );
@@ -480,7 +483,8 @@ function isWriteOrSendAction(toolName: string): boolean {
     "• Solana: Solana Mainnet-Beta, Solana Devnet.\n\n" +
     "CRITICAL INSTRUCTIONS:\n" +
     "1. NETWORK SELECTION FOR BALANCE QUERIES: If the user asks to check their balance or check their wallet without specifying a target network/chain (e.g. 'What is my wallet balance?'), DO NOT attempt to query multiple networks automatically. Instead, ask the user to specify which network they want to check (e.g., Sepolia, Base Sepolia, Ethereum, Base, Arbitrum, Optimism, Polygon, Solana, etc.).\n" +
-    "2. READ vs WRITE: Read queries (like balance checks) are information-only. Write operations (transfers, token sends, contract executions) send crypto out.";
+    "2. READ vs WRITE: Read queries (like balance checks) are information-only. Write operations (transfers, token sends, contract executions) send crypto out.\n" +
+    "3. SINGLE EXECUTION: Execute each transaction tool call EXACTLY ONCE per user prompt. Do NOT invoke transaction tools repeatedly or recursively in the same turn.";
 
   if (evmWalletAddress) {
     systemPrompt += `\n\nThe user's KeeperHub EVM wallet address is ${evmWalletAddress}. If they ask to check their EVM balance or perform an EVM action without specifying an address, use this address.`;
