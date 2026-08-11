@@ -69,9 +69,6 @@ async function dbRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
 }
 
 async function getOrCreateTelegramUser(chatId: string) {
-  if (userCache.has(chatId)) {
-    return userCache.get(chatId);
-  }
   try {
     const user = await dbRetry(async () => {
       let u = await prisma.telegramUser.findUnique({ where: { chatId } });
@@ -83,6 +80,9 @@ async function getOrCreateTelegramUser(chatId: string) {
     userCache.set(chatId, user);
     return user;
   } catch (err) {
+    if (userCache.has(chatId)) {
+      return userCache.get(chatId);
+    }
     const fallbackUser = { id: chatId, chatId, keeperhubKey: null };
     userCache.set(chatId, fallbackUser);
     return fallbackUser;
@@ -682,24 +682,46 @@ bot.on("text", async (ctx) => {
       const formatted = `✅ ${cleanText}`;
 
       if (formatted.length <= 4000) {
-        await ctx.telegram.editMessageText(
-          chatId,
-          msg.message_id,
-          undefined,
-          formatted,
-          { parse_mode: "Markdown" },
-        );
+        try {
+          await ctx.telegram.editMessageText(
+            chatId,
+            msg.message_id,
+            undefined,
+            formatted,
+            { parse_mode: "Markdown" },
+          );
+        } catch (mErr) {
+          await ctx.telegram.editMessageText(
+            chatId,
+            msg.message_id,
+            undefined,
+            formatted,
+          );
+        }
       } else {
         // Split long responses across Telegram messages
-        await ctx.telegram.editMessageText(
-          chatId,
-          msg.message_id,
-          undefined,
-          formatted.substring(0, 3900) + "\n\n(continued below...)",
-          { parse_mode: "Markdown" },
-        );
+        try {
+          await ctx.telegram.editMessageText(
+            chatId,
+            msg.message_id,
+            undefined,
+            formatted.substring(0, 3900) + "\n\n(continued below...)",
+            { parse_mode: "Markdown" },
+          );
+        } catch (mErr) {
+          await ctx.telegram.editMessageText(
+            chatId,
+            msg.message_id,
+            undefined,
+            formatted.substring(0, 3900) + "\n\n(continued below...)",
+          );
+        }
         for (let i = 3900; i < formatted.length; i += 3900) {
-          await ctx.reply(formatted.substring(i, i + 3900), { parse_mode: "Markdown" });
+          try {
+            await ctx.reply(formatted.substring(i, i + 3900), { parse_mode: "Markdown" });
+          } catch (mErr) {
+            await ctx.reply(formatted.substring(i, i + 3900));
+          }
         }
       }
     } else {
