@@ -258,14 +258,10 @@ async function getAvailableGeminiModels(apiKey: string): Promise<string[]> {
   }
 
   const preferredOrder = [
-    "gemini-3.5-flash",
-    "gemini-3.6-flash",
     "gemini-2.5-flash",
     "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
     "gemini-2.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemini-flash-latest",
+    "gemini-1.5-flash",
     "gemini-2.5-pro",
   ];
 
@@ -315,15 +311,16 @@ async function invokeAgentWithModelFallback(
 ) {
   const models = await getAvailableGeminiModels(geminiKey);
   let attemptsCount = 0;
-  const maxAttempts = models.length * 3;
+  const maxAttempts = Math.min(models.length, 5);
 
   while (attemptsCount < maxAttempts) {
-    const modelName = models[currentModelIndex] || "gemini-3.5-flash";
+    const modelName = models[currentModelIndex] || "gemini-2.5-flash";
     try {
       const model = new ChatGoogleGenerativeAI({
         model: modelName,
         temperature: 0,
         apiKey: geminiKey,
+        maxRetries: 1,
       });
 
       const agent = createAgent({
@@ -349,11 +346,6 @@ async function invokeAgentWithModelFallback(
 
       if (isQuotaOrRateLimit || isNotFound) {
         currentModelIndex = (currentModelIndex + 1) % models.length;
-
-        if (attemptsCount % models.length === 0) {
-          await new Promise((resolve) => setTimeout(resolve, 5000));
-        }
-
         continue;
       }
 
@@ -361,7 +353,7 @@ async function invokeAgentWithModelFallback(
     }
   }
 
-  throw new Error("Exhausted all available Gemini fallback models after retrying.");
+  throw new Error("Exhausted available Gemini fallback models after retrying.");
 }
 
 async function runAgentForUser(keeperhubKey: string, history: any[]) {
@@ -668,9 +660,7 @@ bot.on("text", async (ctx) => {
       history.splice(0, history.length - MAX_HISTORY_LENGTH);
     }
 
-    const result = await withRetry(async () => {
-      return await runAgentForUser(user.keeperhubKey!, history);
-    });
+    const result = await runAgentForUser(user.keeperhubKey!, history);
 
     const lastMessage = result.messages[result.messages.length - 1];
     if (lastMessage && lastMessage.content) {
